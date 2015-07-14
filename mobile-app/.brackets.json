@@ -1,0 +1,7 @@
+{
+    "jscodehints.detectedExclusions": [
+        "/home/baylyj/Local Coding/cordova/MooringLights/gulpfile.js",
+        "/home/baylyj/Local Coding/cordova/MooringLights/www/js/app.js",
+        "/home/baylyj/Local Coding/cordova/MooringLights/www/js/controllers.js"
+    ]
+}

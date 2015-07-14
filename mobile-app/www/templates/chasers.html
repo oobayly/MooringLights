@@ -1,0 +1,38 @@
+<ion-view title="Leo's Mooring Lights">
+  <ion-nav-buttons side="right">
+    <a class="button button-clear icon ion-plus-circled" href="#/add/"></a>
+    <a class="button button-clear icon ion-gear-a" ng-click="showSettings()"></a>
+  </ion-nav-buttons>
+
+  <ion-content has-header="true">
+
+    <ion-item class="item-divider">Master Brightness</ion-item>
+
+    <ion-list>
+      <ion-item class="range range-positive">
+        <i class="icon ion-ios-sunny-outline" ng-click="onDownClicked(Intensity)"></i>
+        <input type="range" min="0" max="255" value="128"
+               ng-model="Intensity.Value"
+               ng-value="Intensity.Value"
+               ng-change="onIntensityChanged(Intensity)">
+        <i class="icon ion-ios-sunny" ng-click="onUpClicked(Intensity)"></i>
+      </ion-item>
+
+      <ion-item class="item-divider">Lighting Schemes</ion-item>
+
+      <ion-item class="item-radio item-button-right" ng-repeat="chaser in Chasers | orderBy:'Name'" ng-click="onChaserClick(chaser)">
+        <input type="radio" name="chasers" ng-model="SelectedChaserID" ng-value="chaser.ID">
+        <div class="item-content">
+          <i class="icon ion-ios-sunny" style="opacity: {{channel.Value / 255}}" ng-repeat="channel in chaser.Channels"></i>
+          {{chaser.Name}}
+          <div class="buttons">
+            <a class="button button-positive icon ion-edit" href="#/edit/{{chaser.ID}}" ng-click="$event.stopPropagation();"></a>
+            <a class="button button-positive icon ion-trash-a" ng-click="doDelete(chaser);$event.stopPropagation();"></a>
+          </div>
+        </div>
+      </ion-item>
+
+    </ion-list>
+
+  </ion-content>
+</ion-view>

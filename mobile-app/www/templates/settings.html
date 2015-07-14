@@ -1,0 +1,23 @@
+<ion-modal-view ng-controller="SettingsCtrl">
+  <ion-header-bar class="bar-positive">
+    <h1 class="title">Settings</h1>
+    <div class="buttons">
+      <button class="button button-clear" ng-click="closeSettings()">Close</button>
+    </div>
+  </ion-header-bar>
+  <ion-content has-header="true" padding="true">
+    <form class="list">
+      <label class="item item-input">
+        <span class="input-label">Host</span>
+        <input type="text" ng-model="Settings.Host">
+      </label>
+      <label class="item item-input">
+        <span class="input-label">Port</span>
+        <input type="number" ng-model="Settings.Port">
+      </label>
+      <label class="item">
+        <button class="button button-block button-positive" ng-click="doSave()">Save</button>
+      </label>
+    </form>
+  </ion-content>
+</ion-modal-view>
