@@ -17,8 +17,8 @@ const uint8_t LED_COUNT = 6;
 #define LED_BLINK_INTERVAL 250
 
 // Wireless Access point configuration
-#define AP_SSID "TipsTradePrivate"
-#define AP_PASS "7ipsTr4de"
+#define AP_SSID "TipsTradePublic"
+#define AP_PASS "notorrentingrich"
 
 // TCP server configuration
 #define SERVER_TIMEOUT 10
