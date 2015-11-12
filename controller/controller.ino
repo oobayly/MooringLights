@@ -219,7 +219,7 @@ void timer1_interrupt() {
       // Blink the status led
       digitalWrite(STATUS_LED, !digitalRead(STATUS_LED));
       
-      // During POST, the LEDs will in sequence
+      // During POST, the LEDs will light in sequence
       uint8_t on = LED_COUNT; // Default to the last being on, so it will wrap to the first item
       for (uint8_t i = 0; i < LED_COUNT; i++) {
         if (LED_PWM[i] != 0)
@@ -227,7 +227,7 @@ void timer1_interrupt() {
         LED_PWM[i] = 0; // Make sure they're all zeroed
       }
       
-      LED_PWM[on >= LED_COUNT ? 0 : on] = 0x40; // Do at only 25%
+      LED_PWM[on >= LED_COUNT ? 0 : on] = 0x0c; // Do at only 5%
       setPWMValues((const uint8_t *)LED_PWM, 0, false);
      
     } else if (currentmode == ERROR) {
