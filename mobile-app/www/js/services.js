@@ -302,8 +302,8 @@ angular.module("MooringLights.services", [])
 
         socket.open(settings.Host, settings.Port, function() {
           // Write the data once opened
-          self.logMessage("Writing " + data.length + " bytes to the socket", data);
-          socket.write(data);
+          self.logMessage("Writing " + bytes.length + " bytes to the socket", bytes);
+          socket.write(bytes);
 
         }, function(error) {
           q.reject({
