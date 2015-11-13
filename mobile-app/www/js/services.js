@@ -38,7 +38,7 @@ angular.module("MooringLights.services", [])
   return (Channel);
 })
 
-.factory("Chaser", function($window, $q, Channel) {
+.factory("Chaser", function($window, Channel, TCPClient) {
   var CHANNELS_PER_CHASER = 6;
   var CHANNELS_PER_MIRROR = CHANNELS_PER_CHASER / 2;
   var DEFAULTS = {Name: "", Mirror: true, Channels: []};
@@ -73,22 +73,6 @@ angular.module("MooringLights.services", [])
       }
     };
 
-    this.logMessage = function(message, data) {
-      var msg = message;
-
-      if (data && data.length) {
-        msg += "; Data: {";
-        for (var i = 0; i < data.length; i++) {
-          if (i !== 0)
-            msg += ", ";
-          msg += data[i];
-        }
-        msg += "}";
-      }
-
-      console.log(msg);
-    };
-
     // Set the current channel values
     this.setChannels = function(channels) {
       if (this.Mirror && (channels.length !== CHANNELS_PER_MIRROR))
@@ -112,95 +96,19 @@ angular.module("MooringLights.services", [])
 
     // Writes the levels to the controller
     this.writeLevels = function(intensity) {
-      var self = this;
-
-      var q = $q.defer();
-
       // Default to 0
       intensity = intensity || 0;
 
-      var settings = JSON.parse(localStorage.getItem("settings") || "{}");
-      if (!settings.Host || ! settings.Port) {
-        q.reject({
-          message: "No network settings have been provided"
-        });
-
-      } else if (!window.Socket) {
-        // If the socket plugin isn't available
-        q.reject({
-          message: "Socket plugin is not available"
-        });
-
-      } else {
-        // Build the command - "SET" + [Channel Values] + "\r\n";
-        var command = "SET";
-        var data = new Uint8Array(command.length + 6 + 2);
-        for (var i = 0; i < command.length; i++) {
-          data[i] = command.charCodeAt(i);
-        }
-        for (var i = 0; i < this.Channels.length; i++) {
-          data[command.length + i] = this.Channels[i].Value * intensity / 255;
-        }
-        data[data.length - 2] = 13;
-        data[data.length - 1] = 10;
-
-        // Create the socket
-        var socket = new $window.Socket();
-
-        // Container for any received data
-        var received = null;
-
-        socket.onClose = function(hasError) {
-          if (hasError) {
-            q.reject({
-              message: "Socket closed with an error"
-            });
-
-          } else {
-            var success = true;
-
-            if (received) {
-              self.logMessage("Received " + received.length + " bytes from the socket", received);
-
-              // If data is received, then it must start with a plus
-              success = received.length && String.fromCharCode(received[0]) === "+";
-            }
-
-            if (success) {
-              q.resolve({
-                data: data
-              });
-            } else {
-              q.reject({
-                message: "The controller returned an error.",
-                data: data
-              });
-            }
-
-          }
-        };
-
-        // Response handler
-        socket.onData = function(data) {
-          received = data;
-          socket.close();
-        };
-
-        socket.open(settings.Host, settings.Port, function() {
-          // Write the data once opened
-          self.logMessage("Writing " + data.length + " bytes to the socket", data);
-          socket.write(data);
-
-        }, function(error) {
-          q.reject({
-            message: "An error occurred connecting to the controller",
-            error: error
-          });
-
-        });
+      var data = [];
+      for (var i = 0; i < this.Channels.length; i++) {
+        data[i] = this.Channels[i].Value * intensity / 255;
       }
 
-      return q.promise;
+      var client = new TCPClient({
+        logging: true,
+      });
+
+      return client.send("SET", data);
     };
 
     this.initialize();
@@ -285,6 +193,134 @@ angular.module("MooringLights.services", [])
     $window.localStorage.setItem("chasers", JSON.stringify(chasers));
   };
 
+})
+
+.factory("TCPClient", function($window, $q) {
+  var DEFAULTS = {
+    logging: false,
+    timeout: 10000 // Default timeout
+  }
+
+  var TCPClient = function(defaults) {
+    this.defaults = angular.extend(DEFAULTS, defaults);
+
+    this.logMessage = function(message, data) {
+      if (!this.defaults.logging)
+        return;
+
+      var msg = message;
+
+      if (data && data.length) {
+        msg += "; Data: {";
+        for (var i = 0; i < data.length; i++) {
+          if (i !== 0)
+            msg += ", ";
+          msg += data[i];
+        }
+        msg += "}";
+      }
+
+      console.log(msg);
+    };
+
+    this.send = function(command, data) {
+      var self = this;
+      var q = $q.defer();
+
+      var settings = JSON.parse(localStorage.getItem("settings") || "{}");
+      if (!settings.Host || ! settings.Port) {
+        q.reject({
+          message: "No network settings have been provided"
+        });
+
+      } else if (!window.Socket) {
+        // If the socket plugin isn't available
+        q.reject({
+          message: "Socket plugin is not available"
+        });
+
+      } else {
+        // Data should be an array
+        if (!data || !data.length)
+          data = [];
+
+        var bytes = new Uint8Array(command.length + data.length + 2);
+        for (var i = 0; i < command.length; i++) {
+          bytes[i] = command.charCodeAt(i);
+        }
+
+        for (var i = 0; i < data.length; i++) {
+          bytes[command.length + i] = data[i];
+        }
+
+        // Terminated by \r\n
+        data[data.length - 2] = 13;
+        data[data.length - 1] = 10;
+
+        // Create the socket
+        var socket = new $window.Socket();
+
+        // Container for any received data
+        var received = null;
+
+        // Raised when the socket is closed
+        socket.onClose = function(hasError) {
+          if (hasError) {
+            q.reject({
+              message: "Socket closed with an error"
+            });
+
+          } else {
+            var success = true;
+
+            if (received) {
+              self.logMessage("Received " + received.length + " bytes from the socket", received);
+
+              // If data is received, then it must start with a plus
+              success = received.length && String.fromCharCode(received[0]) === "+";
+            }
+
+            if (success) {
+              q.resolve({
+                data: data
+              });
+            } else {
+              q.reject({
+                message: "The controller returned an error.",
+                data: data
+              });
+            }
+
+          }
+        };
+
+        // Raised when data is received
+        socket.onData = function(data) {
+          received = data;
+          socket.close();
+        };
+
+        socket.open(settings.Host, settings.Port, function() {
+          // Write the data once opened
+          self.logMessage("Writing " + data.length + " bytes to the socket", data);
+          socket.write(data);
+
+        }, function(error) {
+          q.reject({
+            message: "An error occurred connecting to the controller",
+            error: error
+          });
+
+        });
+
+      }
+
+      return q.promise;
+    }
+
+  };
+
+  return (TCPClient);
 })
 
 ;
