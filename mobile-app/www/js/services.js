@@ -38,7 +38,7 @@ angular.module("MooringLights.services", [])
   return (Channel);
 })
 
-.factory("Chaser", function($window, Channel) {
+.factory("Chaser", function($window, $q, Channel) {
   var CHANNELS_PER_CHASER = 6;
   var CHANNELS_PER_MIRROR = CHANNELS_PER_CHASER / 2;
   var DEFAULTS = {Name: "", Mirror: true, Channels: []};
@@ -111,68 +111,96 @@ angular.module("MooringLights.services", [])
     };
 
     // Writes the levels to the controller
-    this.writeLevels = function(intensity, onClose, onError) {
+    this.writeLevels = function(intensity) {
       var self = this;
+
+      var q = $q.defer();
 
       // Default to 0
       intensity = intensity || 0;
 
       var settings = JSON.parse(localStorage.getItem("settings") || "{}");
       if (!settings.Host || ! settings.Port) {
-        if (onError) {
-          onError("No network settings have been provided.");
-        } else {
-          throw "No network settings have been provided.";
+        q.reject({
+          message: "No network settings have been provided"
+        });
+
+      } else if (!window.Socket) {
+        // If the socket plugin isn't available
+        q.reject({
+          message: "Socket plugin is not available"
+        });
+
+      } else {
+        // Build the command - "SET" + [Channel Values] + "\r\n";
+        var command = "SET";
+        var data = new Uint8Array(command.length + 6 + 2);
+        for (var i = 0; i < command.length; i++) {
+          data[i] = command.charCodeAt(i);
         }
-      }
-
-      // Nothing to do if we don't have the sockets plugin
-      if (!window.Socket) {
-        console.log("No Socket is available.");
-        return;
-      }
-
-      var command = "SET";
-      var data = new Uint8Array(command.length + 6 + 2);
-      for (var i = 0; i < command.length; i++) {
-        data[i] = command.charCodeAt(i);
-      }
-      for (var i = 0; i < this.Channels.length; i++) {
-        data[command.length + i] = this.Channels[i].Value * intensity / 255;
-      }
-      data[data.length - 2] = 13;
-      data[data.length - 1] = 10;
-
-      var socket = new $window.Socket();
-
-      // TODO: Handle data
-      socket.onData = function(data) {
-        if (data) {
-          self.logMessage("Received " + data.length + " bytes from the socket", data);
+        for (var i = 0; i < this.Channels.length; i++) {
+          data[command.length + i] = this.Channels[i].Value * intensity / 255;
         }
-        socket.shutdownWrite();
-      };
+        data[data.length - 2] = 13;
+        data[data.length - 1] = 10;
 
-      socket.onError = function(errorMessage) {
-        if (onError)
-          onError("An error occurred connecting to the Lighting Controller.", errorMessage);
-      }
+        // Create the socket
+        var socket = new $window.Socket();
 
-      if (onClose)
-        socket.onClose = onClose;
+        // Container for any received data
+        var received = null;
 
-      socket.open(settings.Host, settings.Port,
-        function() {
+        socket.onClose = function(hasError) {
+          if (hasError) {
+            q.reject({
+              message: "Socket closed with an error"
+            });
+
+          } else {
+            var success = true;
+
+            if (received) {
+              self.logMessage("Received " + received.length + " bytes from the socket", received);
+
+              // If data is received, then it must start with a plus
+              success = received.length && String.fromCharCode(received[0]) === "+";
+            }
+
+            if (success) {
+              q.resolve({
+                data: data
+              });
+            } else {
+              q.reject({
+                message: "The controller returned an error.",
+                data: data
+              });
+            }
+
+          }
+        };
+
+        // Response handler
+        socket.onData = function(data) {
+          received = data;
+          socket.close();
+        };
+
+        socket.open(settings.Host, settings.Port, function() {
+          // Write the data once opened
           self.logMessage("Writing " + data.length + " bytes to the socket", data);
           socket.write(data);
 
-          // TODO: Handle parsing the response
-          socket.shutdownWrite();
-        }, function(errorMessage) {
-          if (onError)
-            onError("An error occurred writing to the Lighting Controller.", errorMessage);
+        }, function(error) {
+          q.reject({
+            message: "An error occurred connecting to the controller",
+            error: error
+          });
 
         });
+      }
+
+      return q.promise;
     };
 
     this.initialize();

@@ -102,17 +102,19 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
         chaser = new Chaser();
       }
 
-      chaser.writeLevels($scope.Intensity.Value,
-        function(hasError) {
-          if (hasError)
-            $cordovaToast.show("An error occured while setting the levels.", "long", "bottom");
-        },
-        function(errorMessage, originalError) {
-          console.log("Couldn't writeLevels: " + originalError || errorMessage);
-          $cordovaToast.show(errorMessage, "long", "bottom");
-          $scope.SelectedChaserID = null;
-        }
-      );
+      chaser.writeLevels($scope.Intensity.Value)
+      .then(function(data) {
+        console.log("Set levels successfuly:");
+        console.log(JSON.stringify(data));
+
+      }).catch(function(error) {
+        console.log("Couldn't write levels:");
+        console.log(JSON.stringify(error));
+
+        $scope.SelectedChaserID = null;
+        $cordovaToast.show(error.message, "long", "bottom");
+      });
+
     }, 100);
   };
 
