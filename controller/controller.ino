@@ -50,13 +50,17 @@ void loop() {
       setPWMValues(buffer, 3, true);
 
       // Respond with the status
-//      writeStatus(mux_id\);
+      writeStatus(mux_id);
       
     } else {
-      dbg.println("Unexpected message");
+      dbg.print("Unexpected message:");
+      for (uint8_t i = 0; i < len; i++) {
+        dbg.print("\t0x");
+        dbg.print(buffer[i], HEX);
+      }
+      dbg.println("");
       
-      esp->send(mux_id, (uint8_t *)"-ERR\r\n", 6);
-      return;
+      esp->send(mux_id, (uint8_t *)"-ER\r\n", 5);
       
     }
   }
