@@ -15,10 +15,11 @@
     "shelljs": "^0.3.0"
   },
   "cordovaPlugins": [
+    "https://github.com/blocshop/sockets-for-cordova",
+    "ionic-plugin-keyboard",
+    "cordova-plugin-x-toast",
     "org.apache.cordova.device",
-    "org.apache.cordova.console",
-    "com.ionic.keyboard",
-    "https://github.com/EddyVerbruggen/Toast-PhoneGap-Plugin.git"
+    "org.apache.cordova.console"
   ],
   "cordovaPlatforms": [
     "android"
