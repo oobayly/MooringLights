@@ -265,9 +265,18 @@ void timer1_interrupt() {
   // Check if the sleep time has expired, unless there was an boot error
   if (currentmode != ERROR) {
     if ((timer1Tick % LED_BLINK_INTERVAL) == 0) {
+      // Sleep after delay
       if (++sleepTicks > SLEEP_AFTER_TICKS) {
         currentmode = SLEEP;
         clearPWMValues();
+      }
+      
+      // HACK: Restart the server after set period to deal with resets
+      if (++restartServerTicks >  RESTART_SERVER_AFTER_TICKS) {
+        esp->enableMUX();
+        esp->setTCPServerTimeout(SERVER_TIMEOUT);
+        esp->startTCPServer(SERVER_PORT);
+        restartServerTicks = 0;
       }
     }
   }

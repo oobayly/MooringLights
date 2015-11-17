@@ -13,6 +13,9 @@ const uint8_t LED_COUNT = 6;
 // The number of seconds after which the lights will be turned off
 #define SLEEP_AFTER_SECONDS 7200
 
+// The number of seconds after which the controller should restart the server
+#define RESTART_SERVER_AFTER_SECONDS 300
+
 // The status led blink interval in milliseconds
 #define LED_BLINK_INTERVAL 250
 
@@ -87,6 +90,9 @@ const uint16_t TIMER_INTERVAL = 1000;
 const uint16_t SLEEP_AFTER_TICKS = SLEEP_AFTER_SECONDS * (1000 / LED_BLINK_INTERVAL);
 volatile uint16_t sleepTicks = 0; 
 
+// Restart server time
+const uint16_t RESTART_SERVER_AFTER_TICKS = RESTART_SERVER_AFTER_SECONDS * (1000 / LED_BLINK_INTERVAL);
+volatile uint16_t restartServerTicks = 0;
 
 /*
   Methods
