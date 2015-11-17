@@ -10,14 +10,14 @@
 // How many LEDs are there
 const uint8_t LED_COUNT = 6;
 
-// The number of seconds after which the lights will be turned off
-#define SLEEP_AFTER_SECONDS 7200
+// The number of seconds after which the controller should check if the ESP module has reset
+#define CHECK_ESP_AFTER_SECONDS 60
 
 // The number of seconds after which the wifi should reconnect when an error was encountered
 #define RESET_WIFI_AFTER_SECONDS 60
 
-// The number of seconds after which the controller should restart the server
-#define RESTART_SERVER_AFTER_SECONDS 300
+// The number of seconds after which the lights will be turned off
+#define SLEEP_AFTER_SECONDS 7200
 
 // The status led blink interval in milliseconds
 #define LED_BLINK_INTERVAL 250
@@ -89,17 +89,17 @@ volatile uint8_t * LED_PWM = new uint8_t[LED_COUNT];
 // The timer interval in microseconds - this should give us a PWM of 1kHz
 const uint16_t TIMER_INTERVAL = 1000;
 
-// Sleep time
-const uint16_t SLEEP_AFTER_TICKS = SLEEP_AFTER_SECONDS * (1000 / LED_BLINK_INTERVAL);
-volatile uint16_t sleepTicks = 0;
+// Restart server time
+const uint16_t CHECK_ESP_AFTER_TICKS = CHECK_ESP_AFTER_SECONDS * (1000 / LED_BLINK_INTERVAL);
+volatile uint16_t checkESPTicks = 0;
 
 // Wifi reset interval
 const uint16_t RESET_WIFI_AFTER_TICKS = RESET_WIFI_AFTER_SECONDS * (1000 / LED_BLINK_INTERVAL);
 volatile uint16_t resetWifiTicks = 0;
 
-// Restart server time
-const uint16_t RESTART_SERVER_AFTER_TICKS = RESTART_SERVER_AFTER_SECONDS * (1000 / LED_BLINK_INTERVAL);
-volatile uint16_t restartServerTicks = 0;
+// Sleep time
+const uint16_t SLEEP_AFTER_TICKS = SLEEP_AFTER_SECONDS * (1000 / LED_BLINK_INTERVAL);
+volatile uint16_t sleepTicks = 0;
 
 /*
   Methods

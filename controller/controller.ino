@@ -1,4 +1,4 @@
-#include <ESP8266.h>
+#include <ESP8266.h> // https://github.com/oobayly/ITEADLIB_Arduino_WeeESP8266
 #include <SoftwareSerial.h>
 #include <TimerOne.h>
 
@@ -65,12 +65,16 @@ void loop() {
     }
   }
   
-  // HACK: Restart the server after set period to deal with resets
-  if (++restartServerTicks >  RESTART_SERVER_AFTER_TICKS) {
-    esp->enableMUX();
-    esp->setTCPServerTimeout(SERVER_TIMEOUT);
-    esp->startTCPServer(SERVER_PORT);
-    restartServerTicks = 0;
+  // This check is only run about every CHECK_ESP_AFTER_SECONDS
+  if (checkESPTicks > CHECK_ESP_AFTER_TICKS) {
+    // Check if Multiplexing is enabled, if not then the server needs to be restarted
+    if (!esp->getMUX()) {
+      dbg.println("Multiplexing disabled - restarting TCP Server");
+      esp->enableMUX();
+      esp->setTCPServerTimeout(SERVER_TIMEOUT);
+      esp->startTCPServer(SERVER_PORT);
+    }
+    checkESPTicks = 0;
   }
 }
 
@@ -294,7 +298,7 @@ void timer1_interrupt() {
       }
 
       // This is tested in the main loop
-      restartServerTicks++;
+      checkESPTicks++;
     }
   }
 }
