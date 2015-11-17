@@ -13,6 +13,9 @@ const uint8_t LED_COUNT = 6;
 // The number of seconds after which the lights will be turned off
 #define SLEEP_AFTER_SECONDS 7200
 
+// The number of seconds after which the wifi should reconnect when an error was encountered
+#define RESET_WIFI_AFTER_SECONDS 60
+
 // The number of seconds after which the controller should restart the server
 #define RESTART_SERVER_AFTER_SECONDS 300
 
@@ -88,7 +91,11 @@ const uint16_t TIMER_INTERVAL = 1000;
 
 // Sleep time
 const uint16_t SLEEP_AFTER_TICKS = SLEEP_AFTER_SECONDS * (1000 / LED_BLINK_INTERVAL);
-volatile uint16_t sleepTicks = 0; 
+volatile uint16_t sleepTicks = 0;
+
+// Wifi reset interval
+const uint16_t RESET_WIFI_AFTER_TICKS = RESET_WIFI_AFTER_SECONDS * (1000 / LED_BLINK_INTERVAL);
+volatile uint16_t resetWifiTicks = 0;
 
 // Restart server time
 const uint16_t RESTART_SERVER_AFTER_TICKS = RESTART_SERVER_AFTER_SECONDS * (1000 / LED_BLINK_INTERVAL);

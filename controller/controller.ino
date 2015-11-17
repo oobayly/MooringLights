@@ -262,9 +262,23 @@ void timer1_interrupt() {
 //  if ((timer1Tick % 100) == 0) {
 //  }
 
-  // Check if the sleep time has expired, unless there was an boot error
-  if (currentmode != ERROR) {
-    if ((timer1Tick % LED_BLINK_INTERVAL) == 0) {
+  if ((timer1Tick % LED_BLINK_INTERVAL) == 0) {
+    if (currentmode == ERROR) {
+      // Reset the wifi if there is an error
+      if (++resetWifiTicks > RESET_WIFI_AFTER_TICKS) {
+        uint8_t code = setupWifi();
+        if (code) {
+          currentmode = ERROR;
+          setLastError(code);
+        } else {
+          currentmode = SLEEP;
+          digitalWrite(STATUS_LED, HIGH);
+        }
+        
+        resetWifiTicks = 0;
+      }
+      
+    } else {
       // Sleep after delay
       if (++sleepTicks > SLEEP_AFTER_TICKS) {
         currentmode = SLEEP;
@@ -278,6 +292,7 @@ void timer1_interrupt() {
         esp->startTCPServer(SERVER_PORT);
         restartServerTicks = 0;
       }
+      
     }
   }
 }
