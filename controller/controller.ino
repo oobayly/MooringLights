@@ -64,6 +64,14 @@ void loop() {
       
     }
   }
+  
+  // HACK: Restart the server after set period to deal with resets
+  if (++restartServerTicks >  RESTART_SERVER_AFTER_TICKS) {
+    esp->enableMUX();
+    esp->setTCPServerTimeout(SERVER_TIMEOUT);
+    esp->startTCPServer(SERVER_PORT);
+    restartServerTicks = 0;
+  }
 }
 
 void clearPWMValues() {
@@ -264,19 +272,19 @@ void timer1_interrupt() {
 
   if ((timer1Tick % LED_BLINK_INTERVAL) == 0) {
     if (currentmode == ERROR) {
-      // Reset the wifi if there is an error
-      if (++resetWifiTicks > RESET_WIFI_AFTER_TICKS) {
-        uint8_t code = setupWifi();
-        if (code) {
-          currentmode = ERROR;
-          setLastError(code);
-        } else {
-          currentmode = SLEEP;
-          digitalWrite(STATUS_LED, HIGH);
-        }
-        
-        resetWifiTicks = 0;
-      }
+//      // Reset the wifi if there is an error
+//      if (++resetWifiTicks > RESET_WIFI_AFTER_TICKS) {
+//        uint8_t code = setupWifi();
+//        if (code) {
+//          currentmode = ERROR;
+//          setLastError(code);
+//        } else {
+//          currentmode = SLEEP;
+//          digitalWrite(STATUS_LED, HIGH);
+//        }
+//        
+//        resetWifiTicks = 0;
+//      }
       
     } else {
       // Sleep after delay
@@ -284,15 +292,9 @@ void timer1_interrupt() {
         currentmode = SLEEP;
         clearPWMValues();
       }
-      
-      // HACK: Restart the server after set period to deal with resets
-      if (++restartServerTicks >  RESTART_SERVER_AFTER_TICKS) {
-        esp->enableMUX();
-        esp->setTCPServerTimeout(SERVER_TIMEOUT);
-        esp->startTCPServer(SERVER_PORT);
-        restartServerTicks = 0;
-      }
-      
+
+      // This is tested in the main loop
+      restartServerTicks++;
     }
   }
 }
