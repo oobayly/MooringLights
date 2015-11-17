@@ -65,8 +65,19 @@ void loop() {
     }
   }
   
-  // This check is only run about every CHECK_ESP_AFTER_SECONDS
-  if (checkESPTicks > CHECK_ESP_AFTER_TICKS) {
+  // Reset the wifi if there is an error
+  if (resetWifiTicks > RESET_WIFI_AFTER_TICKS) {
+    uint8_t code = setupWifi();
+    if (code) {
+      currentmode = ERROR;
+      setLastError(code);
+    } else {
+      currentmode = SLEEP;
+      digitalWrite(STATUS_LED, HIGH);
+    }
+    
+    resetWifiTicks = 0;
+  } else if (checkESPTicks > CHECK_ESP_AFTER_TICKS) {
     // Check if Multiplexing is enabled, if not then the server needs to be restarted
     if (!esp->getMUX()) {
       dbg.println("Multiplexing disabled - restarting TCP Server");
@@ -276,19 +287,8 @@ void timer1_interrupt() {
 
   if ((timer1Tick % LED_BLINK_INTERVAL) == 0) {
     if (currentmode == ERROR) {
-//      // Reset the wifi if there is an error
-//      if (++resetWifiTicks > RESET_WIFI_AFTER_TICKS) {
-//        uint8_t code = setupWifi();
-//        if (code) {
-//          currentmode = ERROR;
-//          setLastError(code);
-//        } else {
-//          currentmode = SLEEP;
-//          digitalWrite(STATUS_LED, HIGH);
-//        }
-//        
-//        resetWifiTicks = 0;
-//      }
+      // This is tested in the main loop
+      resetWifiTicks++;
       
     } else {
       // Sleep after delay
