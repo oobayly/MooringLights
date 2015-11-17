@@ -105,7 +105,7 @@ angular.module("MooringLights.services", [])
       }
 
       var client = new TCPClient({
-        logging: true,
+        Logging: true,
       });
 
       return client.send("SET", data);
@@ -197,15 +197,15 @@ angular.module("MooringLights.services", [])
 
 .factory("TCPClient", function($window, $q) {
   var DEFAULTS = {
-    logging: false,
-    timeout: 10000 // Default timeout
+    Logging: false,
+    Timeout: 10000 // Default timeout
   }
 
   var TCPClient = function(defaults) {
     this.defaults = angular.extend(DEFAULTS, defaults);
 
     this.logMessage = function(message, data) {
-      if (!this.defaults.logging)
+      if (!this.defaults.Logging)
         return;
 
       var msg = message;
