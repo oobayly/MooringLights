@@ -8,3 +8,50 @@ mobile-app/platforms/
 mobile-app/plugins/
 
 controller/passwords.h
+
+# Ignore list for Eagle, a PCB layout tool
+# Backup files
+eagle/*.s#?
+eagle/*.b#?
+eagle/*.l#?
+
+# Eagle project file
+# It contains a serial number and references to the file structure
+# on your computer.
+# comment the following line if you want to have your project file included.
+eagle/eagle.epf
+
+# Autorouter files
+eagle/*.pro
+eagle/*.job
+
+# CAM files
+eagle/*.$$$
+eagle/*.cmp
+eagle/*.ly2
+eagle/*.l15
+eagle/*.sol
+eagle/*.plc
+eagle/*.stc
+eagle/*.sts
+eagle/*.crc
+eagle/*.crs
+
+eagle/*.dri
+eagle/*.drl
+eagle/*.gpi
+eagle/*.pls
+
+eagle/*.drd
+eagle/*.drd.*
+
+eagle/*.info
+
+eagle/*.eps
+
+# file locks introduced since 7.x
+eagle/*.lck
+
+# G-code exports
+eagle/*.tap
+
