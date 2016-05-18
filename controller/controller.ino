@@ -19,7 +19,7 @@ void setup() {
   pinMode(TEMP_PIN, INPUT);
 
   // Need to initialise this before any further calls are made to it
-  Timer1.initialize(1000ul * TIMER1_INTERVAL);
+  Timer1.initialize(1000);
   Timer1.attachInterrupt(timer1_tick);
 
   setupChasers();
@@ -181,6 +181,11 @@ void setLastError(uint8_t code) {
 }
 
 void timer1_tick() {
+  // Ticks every 1ms, but on work every TIMER1_INTERVAL
+  if (counters->tick = (counters->tick + 1) % TIMER1_INTERVAL) {
+    return;
+  }
+  
   if (mode == POST) {
     // Every LED_BLINK_INTERVAL
     counters->timer1 = (counters->timer1 + 1) % LED_BLINK_TICKS;

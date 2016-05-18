@@ -93,6 +93,7 @@ typedef struct Program {
 
 // Counter
 typedef struct Counter {
+  uint32_t tick = 0;
   uint32_t timer1 = 0;
   uint32_t check_esp = 0;
   uint32_t reset_wifi = 0;
