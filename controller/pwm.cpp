@@ -17,10 +17,10 @@ PWM::PWM(const uint8_t * pins) {
     Serial.print(F(" is on pin "));
     Serial.println(pin); 
     if ((pin == PWM_TIMER1_1) || (pin == PWM_TIMER1_2)) {
+      Timer1.pwm(pin, 0); // Sets the pin mode and the sets the duty cycle
+    } else {
       pinMode(pin, OUTPUT);
       analogWrite(pin, 0);
-    } else {
-      Timer1.pwm(pin, 0); // Sets the pin mode and the sets the duty cycle
     }
 
     this->current[i] = 0;
@@ -62,7 +62,7 @@ void PWM::setLight(uint8_t index, uint8_t value) {
   this->current[index] = value;
   
   if ((pins[index] == PWM_TIMER1_1) || (pins[index] == PWM_TIMER1_2)) {
-    Timer1.setPwmDuty(this->pins[index], (uint16_t)value << 4); // Timer1 pwm is 10bit
+    Timer1.setPwmDuty(this->pins[index], (uint16_t)value << 2); // Timer1 pwm is 10bit
   } else {
     analogWrite(this->pins[index], value);
   }
