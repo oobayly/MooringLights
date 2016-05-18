@@ -244,18 +244,22 @@ angular.module("MooringLights.services", [])
         if (!data || !data.length)
           data = [];
 
-        var bytes = new Uint8Array(command.length + data.length + 2);
+        var byteCount = command.length + (data.length ? 1 : 0) + data.length + 2;
+        var bytes = new Uint8Array(byteCount);
         for (var i = 0; i < command.length; i++) {
           bytes[i] = command.charCodeAt(i);
         }
 
-        for (var i = 0; i < data.length; i++) {
-          bytes[command.length + i] = data[i];
+        if (data.length) {
+          bytes[command.length] = 0x20; // Space delimited
+          for (var i = 0; i < data.length; i++) {
+            bytes[command.length + 1 + i] = data[i];
+          }
         }
 
         // Terminated by \r\n
-        data[data.length - 2] = 13;
-        data[data.length - 1] = 10;
+        bytes[byteCount - 2] = 13;
+        bytes[byteCount - 1] = 10;
 
         // Create the socket
         var socket = new $window.Socket();
@@ -296,8 +300,8 @@ angular.module("MooringLights.services", [])
 
         // Raised when data is received
         socket.onData = function(data) {
+          // Just send the data, the controller will close the connection
           received = data;
-          socket.close();
         };
 
         socket.open(settings.Host, settings.Port, function() {
