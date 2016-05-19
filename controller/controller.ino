@@ -37,20 +37,32 @@ void setup() {
 
 void setupChasers() {
   Chaser l;
-  l.count=2;
-  l.interval = 250;
+  l.count = 4;
+  l.interval = 500;
   l.lights[0][0] = 0xff;
-  l.lights[0][1] = 0xff;
-  l.lights[0][2] = 0xff;
-  l.lights[0][3] = 0xff;
-  l.lights[0][4] = 0xff;
+  l.lights[0][1] = 0x00;
+  l.lights[0][2] = 0x00;
+  l.lights[0][3] = 0x00;
+  l.lights[0][4] = 0x00;
   l.lights[0][5] = 0xff;
-  l.lights[1][0] = 0x0;
-  l.lights[1][1] = 0x0;
-  l.lights[1][2] = 0x0;
-  l.lights[1][3] = 0x0;
-  l.lights[1][4] = 0x0;
-  l.lights[1][5] = 0x0;
+  l.lights[1][0] = 0x00;
+  l.lights[1][1] = 0xff;
+  l.lights[1][2] = 0x00;
+  l.lights[1][3] = 0x00;
+  l.lights[1][4] = 0xff;
+  l.lights[1][5] = 0x00;
+  l.lights[2][0] = 0x00;
+  l.lights[2][1] = 0x00;
+  l.lights[2][2] = 0xff;
+  l.lights[2][3] = 0xff;
+  l.lights[2][4] = 0x00;
+  l.lights[2][5] = 0x00;
+  l.lights[3][0] = 0x00;
+  l.lights[3][1] = 0x00;
+  l.lights[3][2] = 0x00;
+  l.lights[3][3] = 0x00;
+  l.lights[3][4] = 0x00;
+  l.lights[3][5] = 0x00;
   memory_write(0, &l);
 
   l.count=2;

@@ -68,7 +68,7 @@ typedef struct Trigger {
 #define EEPROM_PROG_OFFSET 32
 
 // Lights
-#define LIGHTS_MAX_COUNT 3
+#define LIGHTS_MAX_COUNT 6
 #define LIGHTS_FADE_INTERVAL 500 /* Fade interval between programs (is ms) */
 
 // Defines a chaser
