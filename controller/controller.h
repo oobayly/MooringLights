@@ -9,7 +9,7 @@
 WiFi * const wifi = new WiFi();
 
 RF * rf = NULL;
-Trigger * const trigger = new Trigger();
+volatile Trigger * const trigger = new Trigger();
 
 PWM * pwm = NULL;
 
@@ -20,7 +20,7 @@ volatile Counter * const counters = new Counter();
 
 // Mode & Error
 volatile mode_e mode = POST;
-Error * const error = new Error();
+volatile Error * const error = new Error();
 
 void setup();
 
