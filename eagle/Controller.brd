@@ -159,6 +159,8 @@
 <text x="24.13" y="30.48" size="1.778" layer="46" align="top-center">RF Rx</text>
 <text x="24.13" y="21.59" size="1.778" layer="46">+3 Tx Rx Gnd</text>
 <text x="44.45" y="8.89" size="1.778" layer="46" align="top-left">0 1 2 3 Gnd +5</text>
+<text x="7.62" y="1.27" size="1.778" layer="46">Rev:</text>
+<text x="13.97" y="1.27" size="1.778" layer="46">&gt;CREVISION</text>
 </plain>
 <libraries>
 <library name="SparkFun-Connectors">
@@ -598,6 +600,7 @@ You are welcome to use this library for commercial purposes. For attribution, we
 </library>
 </libraries>
 <attributes>
+<attribute name="CREVISION" value="0.1"/>
 </attributes>
 <variantdefs>
 </variantdefs>
@@ -1026,15 +1029,10 @@ design rules under a new name.</description>
 <wire x1="31.75" y1="63.5" x2="31.75" y2="67.31" width="3.556" layer="16"/>
 <wire x1="16.51" y1="63.5" x2="16.51" y2="67.31" width="3.556" layer="16"/>
 <wire x1="12.7" y1="17.78" x2="19.05" y2="17.78" width="1.016" layer="16"/>
-<wire x1="16.51" y1="17.78" x2="19.05" y2="17.78" width="0" layer="19" extent="1-16"/>
 <wire x1="13.97" y1="33.02" x2="19.05" y2="22.86" width="1.016" layer="1"/>
-<wire x1="19.05" y1="22.86" x2="15.24" y2="22.86" width="0" layer="19" extent="1-16"/>
-<wire x1="15.24" y1="22.86" x2="15.24" y2="20.32" width="0" layer="19" extent="1-16"/>
-<wire x1="15.24" y1="20.32" x2="16.51" y2="19.05" width="0" layer="19" extent="1-16"/>
-<wire x1="16.51" y1="19.05" x2="16.51" y2="17.78" width="0" layer="19" extent="1-16"/>
+<wire x1="19.05" y1="17.78" x2="19.05" y2="22.86" width="1.016" layer="16"/>
 <wire x1="19.05" y1="17.78" x2="19.0754" y2="17.78" width="0" layer="19" extent="16-16"/>
 <wire x1="3.81" y1="33.02" x2="5.08" y2="33.02" width="0" layer="19" extent="16-16"/>
-<wire x1="19.05" y1="17.78" x2="19.05" y2="22.86" width="1.016" layer="16"/>
 </signal>
 <signal name="RESET">
 <contactref element="NANO" pad="RESET"/>
