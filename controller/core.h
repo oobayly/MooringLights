@@ -63,13 +63,19 @@ typedef struct Trigger {
 
 // PWM
 #define PWM_COUNT 6
-#define PWM_PINS {11, 10, 9, 6, 5, 3}
+//#define PWM_PINS {5, 9, 11, 10, 6, 3} /* In pairs, Outer, Middle, Inner */
+#define PWM_PINS {11, 10, 9, 6, 5, 3} /* From left to right */
 #define PWM_TIMER1_1 9 /* This pin is needs to use Timer1's pwm method */
 #define PWM_TIMER1_2 10 /* This pin is needs to use Timer1's pwm method */
 
 // Trimpots
-#define TRM_COUNT 3
-#define TRM_PINS {5, 6, 7}
+#define TRIM_0 A7
+
+// Extra pins
+#define EXTRA_0 A1
+#define EXTRA_1 A2
+#define EXTRA_2 A5
+#define EXTRA_3 A6
 
 // EEPROM
 #define EEPROM_PROG_OFFSET 32
