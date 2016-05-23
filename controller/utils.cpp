@@ -3,7 +3,7 @@
 #include "core.h"
 #include "utils.h"
 
-void memory_read(uint8_t number, Chaser * chaser) {
+void memory_read(uint8_t number, Chaser * const chaser) {
   uint16_t offset = EEPROM_PROG_OFFSET + (number * sizeof(Chaser));
 
   uint8_t * buffer = (uint8_t *)chaser;
@@ -16,7 +16,7 @@ void memory_read(uint8_t number, Chaser * chaser) {
   chaser->index = 0;
 }
 
-void memory_write(uint8_t number, const Chaser * chaser) {
+void memory_write(uint8_t number, const Chaser * const chaser) {
   uint16_t offset = EEPROM_PROG_OFFSET + (number * sizeof(Chaser));
 
   uint8_t * buffer = (uint8_t *)chaser;
