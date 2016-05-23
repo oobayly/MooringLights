@@ -69,7 +69,12 @@ angular.module("MooringLights.services", [])
 
       var data = [];
       for (var i = 0; i < this.Channels.length; i++) {
-        data[i] = this.Channels[i].Value * intensity / 255;
+        if (this.Channels[i].Value == 0) {
+          data[i] = 0;
+        } else {
+          // Compress non-zero values to be between 1 and intensity
+          data[i] = 1 + (this.Channels[i].Value - 1) * intensity / 255;
+        }
       }
 
       var client = new TCPClient({
