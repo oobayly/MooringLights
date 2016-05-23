@@ -8,10 +8,10 @@
 
     <ion-item class="item-divider">Master Brightness</ion-item>
 
-    <ion-list>
+    <ion-list class="fade-in-not-out">
       <ion-item class="range range-positive">
         <i class="icon ion-ios-sunny-outline" ng-click="onDownClicked(Intensity)"></i>
-        <input type="range" min="0" max="255" value="128"
+        <input type="range" min="0" max="255"
                ng-model="Intensity.Value"
                ng-value="Intensity.Value"
                ng-change="onIntensityChanged(Intensity)">
@@ -20,8 +20,7 @@
 
       <ion-item class="item-divider">Lighting Schemes</ion-item>
 
-      <ion-item class="item-radio item-button-right" ng-repeat="scene in Scenes | orderBy:'Name'" ng-click="onSceneClick(scene)">
-        <input type="radio" name="scenes" ng-model="SelectedSceneID" ng-value="scene.ID">
+      <ion-item class="item-button-right" ng-repeat="scene in Scenes | orderBy:'Name' track by scene.ID" ng-click="onSceneClick(scene)">
         <div class="item-content">
           <i class="icon ion-ios-sunny" style="opacity: {{channel.Value / 255}}" ng-repeat="channel in scene.Channels"></i>
           {{scene.Name}}

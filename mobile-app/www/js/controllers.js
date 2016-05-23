@@ -75,10 +75,10 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
 
         LightsService.deleteScene(item.ID);
 
-        $scope.reloadScenes()
+        $scope.reloadScenes();
       }
     });
-  }
+  };
 
   $scope.reloadScenes = function() {
     $scope.Scenes = LightsService.getScenes();
