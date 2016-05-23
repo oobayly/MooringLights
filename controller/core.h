@@ -5,6 +5,13 @@
 #ifndef CORE_H
 #define CORE_H
 
+#ifndef AP_SSID
+  #define AP_SSID F("")
+#endif
+#ifndef AP_PASS
+  #define AP_PASS F("")
+#endif
+
 // Debug serial
 #define DEBUG
 #define DEBUG_BAUD 115200
