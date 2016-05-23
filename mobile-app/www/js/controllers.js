@@ -1,7 +1,7 @@
 angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.services"])
 
 // SceneCtrl: The controller used for displaying all the scenes
-.controller("SceneCtrl", function($scope, $rootScope, $ionicModal, $ionicPopup, $cordovaToast, LightsService, Scene, Channel) {
+.controller("SceneCtrl", function($scope, $rootScope, $ionicModal, $ionicPopover, $ionicPopup, $cordovaToast, LightsService, Scene, Channel, TCPClient) {
   // These are the scenes that are currently available
   $scope.Scenes = [];
 
@@ -22,9 +22,16 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
     $scope.settingsModal = modal;
   });
 
+  $ionicPopover.fromTemplateUrl("menu-popover.html", {
+    scope: $scope
+  }).then(function(popover) {
+    $scope.menuPopover = popover;
+  });
+
   // Remove the settings dialog when cleaning up
   $scope.$on('$destroy', function() {
     $scope.settingsModal.remove();
+    $scope.menuPopover.remove();
   });
 
   $rootScope.$on("intensity-changed", function(event, data) {
@@ -103,9 +110,9 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
       }
 
       scene.writeLevels($scope.Intensity.Value)
-      .then(function(data) {
+      .then(function(response) {
         console.log("Set levels successfuly:");
-        console.log(JSON.stringify(data));
+        console.log(JSON.stringify(response));
 
       }).catch(function(error) {
         console.log("Couldn't write levels:");
@@ -120,8 +127,32 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
 
   // Show the settings dialog
   $scope.showSettings = function() {
+    $scope.menuPopover.hide();
     $scope.settingsModal.show();
   };
+
+  $scope.showTemperature = function() {
+    $scope.menuPopover.hide();
+
+    var client = new TCPClient({
+      Logging: true
+    });
+    client.send("TEMP", null)
+    .then(function(response) {
+      var message = "Controller temperature is ";
+      for (var i = 4; i < response.data.length; i++) {
+        message += String.fromCharCode(response.data[i]);
+      }
+      message += "°"
+      $cordovaToast.show(message, "long", "bottom");
+
+    }).catch(function(error) {
+      console.log("Couldn't get temperature:");
+      console.log(JSON.stringify(error));
+
+      $cordovaToast.show(error.message, "long", "bottom");
+    })
+  }
 
   $scope.initialize = function() {
     // Fetch any saved scenes

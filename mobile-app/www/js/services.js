@@ -268,12 +268,12 @@ angular.module("MooringLights.services", [])
 
             if (success) {
               q.resolve({
-                data: data
+                data: received
               });
             } else {
               q.reject({
                 message: "The controller returned an error.",
-                data: data
+                data: received
               });
             }
 
