@@ -16,7 +16,7 @@ void setup() {
 #endif
 
   pinMode(STATUS_LED, OUTPUT);
-  pinMode(TEMP_PIN, INPUT);
+  pinMode(TEMP_PIN, INPUT); // TMP36
 
   // Need to initialise this before any further calls are made to it
   Timer1.initialize(1000);

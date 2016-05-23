@@ -14,6 +14,8 @@ class PWM {
     void setLights(uint8_t * lights, uint16_t steps);
   
   private:
+    uint8_t trimValue = 0;
+
     uint8_t current[PWM_COUNT];
     uint8_t last[PWM_COUNT];
     uint8_t next[PWM_COUNT];

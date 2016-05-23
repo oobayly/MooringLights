@@ -23,6 +23,11 @@ PWM::PWM(const uint8_t * pins) {
       analogWrite(pin, 0);
     }
 
+    // Trimpot acts as limiter
+    pinMode(TRIM_0, INPUT);
+    Serial.print(F("Light limiter is on pin "));
+    Serial.println(TRIM_0); 
+
     this->current[i] = 0;
     this->last[i] = 0;
     this->next[i] = 0;
@@ -32,6 +37,9 @@ PWM::PWM(const uint8_t * pins) {
 void PWM::doStep() {
   if (this->index == this->steps)
     return;
+
+  // Cache the trim value as a 8 bit value
+  this->trimValue = analogRead(TRIM_0) >> 2;
   
   int16_t from, to;
   for (uint8_t i = 0; i < PWM_COUNT; i++) {
@@ -60,7 +68,13 @@ bool PWM::getState(uint8_t * values) const {
 
 void PWM::setLight(uint8_t index, uint8_t value) {
   this->current[index] = value;
-  
+
+  // The actual value written is compressed between 1 and 255 using the trimpot
+  if (value != 0) {
+    value = 1 + (uint16_t)(value - 1) * this->trimValue / 255;
+    
+  }
+
   if ((pins[index] == PWM_TIMER1_1) || (pins[index] == PWM_TIMER1_2)) {
     Timer1.setPwmDuty(this->pins[index], (uint16_t)value << 2); // Timer1 pwm is 10bit
   } else {
