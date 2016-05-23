@@ -20,14 +20,14 @@
 
       <ion-item class="item-divider">Lighting Schemes</ion-item>
 
-      <ion-item class="item-radio item-button-right" ng-repeat="chaser in Chasers | orderBy:'Name'" ng-click="onChaserClick(chaser)">
-        <input type="radio" name="chasers" ng-model="SelectedChaserID" ng-value="chaser.ID">
+      <ion-item class="item-radio item-button-right" ng-repeat="scene in Scenes | orderBy:'Name'" ng-click="onSceneClick(scene)">
+        <input type="radio" name="scenes" ng-model="SelectedSceneID" ng-value="scene.ID">
         <div class="item-content">
-          <i class="icon ion-ios-sunny" style="opacity: {{channel.Value / 255}}" ng-repeat="channel in chaser.Channels"></i>
-          {{chaser.Name}}
+          <i class="icon ion-ios-sunny" style="opacity: {{channel.Value / 255}}" ng-repeat="channel in scene.Channels"></i>
+          {{scene.Name}}
           <div class="buttons">
-            <a class="button button-positive icon ion-edit" href="#/edit/{{chaser.ID}}" ng-click="$event.stopPropagation();"></a>
-            <a class="button button-positive icon ion-trash-a" ng-click="doDelete(chaser);$event.stopPropagation();"></a>
+            <a class="button button-positive icon ion-edit" href="#/edit/{{scene.ID}}" ng-click="$event.stopPropagation();"></a>
+            <a class="button button-positive icon ion-trash-a" ng-click="doDelete(scene);$event.stopPropagation();"></a>
           </div>
         </div>
       </ion-item>

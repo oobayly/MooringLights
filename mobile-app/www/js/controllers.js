@@ -1,15 +1,15 @@
 angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.services"])
 
-// ChaserCtrl: The controller used for displaying all the chasers
-.controller("ChaserCtrl", function($scope, $rootScope, $ionicModal, $ionicPopup, $cordovaToast, LightsService, Chaser, Channel) {
-  // These are the chasers that are currently available
-  $scope.Chasers = [];
+// SceneCtrl: The controller used for displaying all the scenes
+.controller("SceneCtrl", function($scope, $rootScope, $ionicModal, $ionicPopup, $cordovaToast, LightsService, Scene, Channel) {
+  // These are the scenes that are currently available
+  $scope.Scenes = [];
 
   $scope.Settings = {Host: "", Port: 8888};
 
   $scope.Intensity = new Channel();
 
-  $scope.SelectedChaserID = null;
+  $scope.SelectedSceneID = null;
 
   $scope.setLevelTimeout = null;
 
@@ -32,12 +32,12 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
     $scope.Intensity.Value = data.Value;
   });
 
-  $rootScope.$on("chasers-changed", function(event, data) {
-    $scope.reloadChasers();
+  $rootScope.$on("scenes-changed", function(event, data) {
+    $scope.reloadScenes();
   });
 
-  $scope.onChaserClick = function(item) {
-    $scope.SelectedChaserID = item.ID;
+  $scope.onSceneClick = function(item) {
+    $scope.SelectedSceneID = item.ID;
     $scope.setLevels();
   };
 
@@ -69,19 +69,19 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
     });
     popup.then(function(res) {
       if (res) {
-        // Unset the selcted chaser if it's the one we've deleted
-        if ($scope.SelectedChaserID == item.ID)
-          $scope.SelectedChaserID = null;
+        // Unset the selcted scene if it's the one we've deleted
+        if ($scope.SelectedSceneID == item.ID)
+          $scope.SelectedSceneID = null;
 
-        LightsService.deleteChaser(item.ID);
+        LightsService.deleteScene(item.ID);
 
-        $scope.reloadChasers()
+        $scope.reloadScenes()
       }
     });
   }
 
-  $scope.reloadChasers = function() {
-    $scope.Chasers = LightsService.getChasers();
+  $scope.reloadScenes = function() {
+    $scope.Scenes = LightsService.getScenes();
     $scope.setLevels();
   };
 
@@ -94,15 +94,15 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
     $scope.setLevelTimeout = window.setTimeout(function () {
       $scope.setLevelTimout = null;
 
-      var chaser;
-      if ($scope.SelectedChaserID) {
-        chaser = LightsService.getChaser($scope.SelectedChaserID);
+      var scene;
+      if ($scope.SelectedSceneID) {
+        scene = LightsService.getScene($scope.SelectedSceneID);
       } else {
-        // If none is selected, then use an empty chaser to switch the lights off
-        chaser = new Chaser();
+        // If none is selected, then use an empty scene to switch the lights off
+        scene = new Scene();
       }
 
-      chaser.writeLevels($scope.Intensity.Value)
+      scene.writeLevels($scope.Intensity.Value)
       .then(function(data) {
         console.log("Set levels successfuly:");
         console.log(JSON.stringify(data));
@@ -111,7 +111,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
         console.log("Couldn't write levels:");
         console.log(JSON.stringify(error));
 
-        $scope.SelectedChaserID = null;
+        $scope.SelectedSceneID = null;
         $cordovaToast.show(error.message, "long", "bottom");
       });
 
@@ -124,8 +124,8 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
   };
 
   $scope.initialize = function() {
-    // Fetch any saved chasers
-    $scope.reloadChasers();
+    // Fetch any saved scenes
+    $scope.reloadScenes();
 
     // Fetch the previous settings from localstorage
     $scope.Intensity.Value = parseInt(localStorage.getItem("intensity") || "0");
@@ -153,9 +153,9 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
   };
 })
 
-// EditCtrl: The controller for adding/editing chasers
-.controller("EditCtrl", function($scope, $rootScope, $ionicHistory, $ionicPopup, $stateParams, LightsService, Channel, Chaser) {
-  $scope.Chaser = {};
+// EditCtrl: The controller for adding/editing scenes
+.controller("EditCtrl", function($scope, $rootScope, $ionicHistory, $ionicPopup, $stateParams, LightsService, Channel, Scene) {
+  $scope.Scene = {};
 
   $scope.Channels = [];
 
@@ -175,7 +175,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
 
   // Raised when the intensity slider value is changed
   $scope.onChannelChanged = function(item) {
-    $scope.Chaser.setChannels($scope.Channels);
+    $scope.Scene.setChannels($scope.Channels);
 
     $scope.setLevels();
   }
@@ -203,7 +203,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
   };
 
   $scope.doSave = function() {
-    if (!$scope.Chaser.Name) {
+    if (!$scope.Scene.Name) {
       $ionicPopup.alert({
         title: "Validation error",
         template: "Please enter a name for the Lighting Scheme",
@@ -211,8 +211,8 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
       return;
     }
 
-    LightsService.saveChaser($scope.Chaser);
-    $rootScope.$broadcast("chasers-changed");
+    LightsService.saveScene($scope.Scene);
+    $rootScope.$broadcast("scenes-changed");
     $ionicHistory.goBack();
   };
 
@@ -225,7 +225,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
     $scope.setLevelTimeout = window.setTimeout(function () {
       $scope.setLevelTimout = null;
 
-      $scope.Chaser.writeLevels($scope.Intensity.Value,
+      $scope.Scene.writeLevels($scope.Intensity.Value,
         function(hasError) {
           if (hasError)
             $cordovaToast.show("An error occured while setting the levels.", "long", "bottom");
@@ -233,7 +233,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
         function(errorMessage, originalError) {
           console.log("Couldn't writeLevels: " + originalError || errorMessage);
           $cordovaToast.show(errorMessage, "long", "bottom");
-          $scope.SelectedChaserID = null;
+          $scope.SelectedSceneID = null;
         }
       );
     }, 100);
@@ -241,7 +241,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
 
   $scope.onMirrorChanged = function() {
     // Fetch the correct number of channels
-    $scope.Channels = $scope.Chaser.getChannels();
+    $scope.Channels = $scope.Scene.getChannels();
 
     // And re-write them
     $scope.onChannelChanged();
@@ -249,9 +249,9 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
 
   $scope.initialize = function() {
     if ($stateParams.id) {
-      $scope.Chaser = LightsService.getChaser($stateParams.id);
+      $scope.Scene = LightsService.getScene($stateParams.id);
     } else {
-      $scope.Chaser = new Chaser();
+      $scope.Scene = new Scene();
     }
 
     $scope.onMirrorChanged();

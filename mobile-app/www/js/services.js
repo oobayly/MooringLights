@@ -38,22 +38,22 @@ angular.module("MooringLights.services", [])
   return (Channel);
 })
 
-.factory("Chaser", function($window, Channel, TCPClient) {
-  var CHANNELS_PER_CHASER = 6;
-  var CHANNELS_PER_MIRROR = CHANNELS_PER_CHASER / 2;
+.factory("Scene", function($window, Channel, TCPClient) {
+  var CHANNELS_PER_SCENE = 6;
+  var CHANNELS_PER_MIRROR = CHANNELS_PER_SCENE / 2;
   var DEFAULTS = {Name: "", Mirror: true, Channels: []};
 
-  var Chaser = function(defaults) {
+  var Scene = function(defaults) {
     angular.extend(this, DEFAULTS, angular.copy(defaults));
 
     this.initialize = function() {
       // Pre-populate with the requisite number of channels
-      for (var i = 0; i < CHANNELS_PER_CHASER; i++) {
+      for (var i = 0; i < CHANNELS_PER_SCENE; i++) {
         this.Channels[i] = new Channel();
       }
 
       if (defaults && defaults.Channels) {
-        for (var i = 0; i < CHANNELS_PER_CHASER; i++) {
+        for (var i = 0; i < CHANNELS_PER_SCENE; i++) {
           this.Channels[i].Value = defaults.Channels[i].Value;
         }
       }
@@ -76,19 +76,19 @@ angular.module("MooringLights.services", [])
     // Set the current channel values
     this.setChannels = function(channels) {
       if (this.Mirror && (channels.length !== CHANNELS_PER_MIRROR))
-        throw CHANNELS_PER_MIRROR + " channels are required for a mirrored chaser";
+        throw CHANNELS_PER_MIRROR + " channels are required for a mirrored scene";
 
-      if (!this.Mirror && (channels.length !== CHANNELS_PER_CHASER))
-        throw CHANNELS_PER_CHASER + " channels are required for standard chaser";
+      if (!this.Mirror && (channels.length !== CHANNELS_PER_SCENE))
+        throw CHANNELS_PER_SCENE + " channels are required for standard scene";
 
       if (this.Mirror) {
-        for (var i = 0; i < CHANNELS_PER_CHASER; i++) {
-          var index = (i < CHANNELS_PER_MIRROR) ? i : (CHANNELS_PER_CHASER - 1 - i);
+        for (var i = 0; i < CHANNELS_PER_SCENE; i++) {
+          var index = (i < CHANNELS_PER_MIRROR) ? i : (CHANNELS_PER_SCENE - 1 - i);
           this.Channels[i].Value = channels[index].Value;
         }
 
       } else {
-        for (var i = 0; i < CHANNELS_PER_CHASER; i++) {
+        for (var i = 0; i < CHANNELS_PER_SCENE; i++) {
           this.Channels[i].Value = channels[i].Value;
         }
       }
@@ -114,83 +114,83 @@ angular.module("MooringLights.services", [])
     this.initialize();
   };
 
-  return (Chaser);
+  return (Scene);
 })
 
-.service("LightsService", function($window, Chaser){
+.service("LightsService", function($window, Scene){
   // The overall intensity (0 - 255) for all channels
   this.Intensity = {Value: 0};
 
-  // Deletes the specified chaser
-  this.deleteChaser = function(id) {
-    var chasers = this.getChasers();
+  // Deletes the specified scene
+  this.deleteScene = function(id) {
+    var scenes = this.getScenes();
 
     var found = -1;
-    angular.forEach(chasers, function(item, index) {
+    angular.forEach(scenes, function(item, index) {
       if ((found === -1) && (item.ID == id))
         found = index;
     });
 
     if (found === -1)
-      throw "No chaser could be found with the ID '" + id + "'";
+      throw "No scene could be found with the ID '" + id + "'";
 
-    chasers.splice(found, 1);
-    this.saveChasers(chasers);
+    scenes.splice(found, 1);
+    this.saveScenes(scenes);
   };
 
-  // Get the specified chaser
-  this.getChaser = function(id) {
-    var chasers = this.getChasers();
+  // Get the specified scene
+  this.getScene = function(id) {
+    var scenes = this.getScenes();
 
     var found = null;
-    angular.forEach(chasers, function(item, index) {
+    angular.forEach(scenes, function(item, index) {
       if (item.ID == id)
-        found = new Chaser(item);
+        found = new Scene(item);
     });
 
     if (found)
       return found;
 
-    throw "No chaser could be found with the ID '" + id + "'";
+    throw "No scene could be found with the ID '" + id + "'";
   }
 
-  // Gets all the chasers from local storage
-  this.getChasers = function() {
-    var saved = JSON.parse($window.localStorage.getItem("chasers") || "[]");
+  // Gets all the scenes from local storage
+  this.getScenes = function() {
+    var saved = JSON.parse($window.localStorage.getItem("scenes") || "[]");
 
-    var chasers = [];
+    var scenes = [];
     for (var i = 0; i < saved.length; i++) {
-      chasers[i] = new Chaser(saved[i]);
+      scenes[i] = new Scene(saved[i]);
     }
 
-    return chasers;
+    return scenes;
   };
 
-  // Sets the specified chaser
-  this.saveChaser = function(chaser) {
-    var chasers = this.getChasers();
+  // Sets the specified scene
+  this.saveScene = function(scene) {
+    var scenes = this.getScenes();
 
     var found = -1;
     var maxID = 0;
-    angular.forEach(chasers, function(item, index) {
-      if ((found === -1) && (item.ID == chaser.ID))
+    angular.forEach(scenes, function(item, index) {
+      if ((found === -1) && (item.ID == scene.ID))
         found = index;
 
       if (item.ID >= maxID)
         maxID = item.ID;
     });
 
-    if (!chaser.ID)
-      chaser.ID = maxID + 1;
+    if (!scene.ID)
+      scene.ID = maxID + 1;
 
-    chasers[found === -1 ? chasers.length : found] = chaser;
+    scenes[found === -1 ? scenes.length : found] = scene;
 
-    this.saveChasers(chasers);
+    this.saveScenes(scenes);
   };
 
-  // Saves all the chasers to localstorage
-  this.saveChasers = function(chasers) {
-    $window.localStorage.setItem("chasers", JSON.stringify(chasers));
+  // Saves all the scenes to localstorage
+  this.saveScenes = function(scenes) {
+    $window.localStorage.setItem("scenes", JSON.stringify(scenes));
   };
 
 })

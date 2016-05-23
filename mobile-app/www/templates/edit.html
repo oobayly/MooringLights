@@ -19,7 +19,7 @@
 
       <label class="item item-input">
         <span class="input-label">Name</span>
-        <input type="text" ng-model="Chaser.Name">
+        <input type="text" ng-model="Scene.Name">
       </label>
 
       <ion-item class="item-input item-toggle">
@@ -27,7 +27,7 @@
           Mirror lights
         </ion-label>
         <label class="toggle toggle-positive">
-          <input type="checkbox" ng-model="Chaser.Mirror" ng-change="onMirrorChanged()">
+          <input type="checkbox" ng-model="Scene.Mirror" ng-change="onMirrorChanged()">
             <div class="track">
               <div class="handle"></div>
             </div>
@@ -36,8 +36,8 @@
 
       <ion-item class="item-divider">
         Light Levels -
-        <span ng-show="Chaser.Mirror">Outer to Inner</span>
-        <span ng-show="!Chaser.Mirror">Left to Right</span>
+        <span ng-show="Scene.Mirror">Outer to Inner</span>
+        <span ng-show="!Scene.Mirror">Left to Right</span>
       </ion-item>
 
       <ion-item class="range range-positive" ng-repeat="channel in Channels">

@@ -16,8 +16,8 @@ angular.module('MooringLights', ["ionic", "MooringLights.controllers"])
 
   .state('app', {
     url: "/app",
-    controller: "ChaserCtrl",
-    templateUrl: "templates/chasers.html",
+    controller: "SceneCtrl",
+    templateUrl: "templates/scenes.html",
   })
 
   .state('add', {
