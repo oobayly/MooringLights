@@ -53,7 +53,11 @@ angular.module("MooringLights.services", [])
 
       if (defaults && defaults.Channels) {
         for (var i = 0; i < CHANNELS_PER_SCENE; i++) {
-          this.Channels[i].Value = defaults.Channels[i].Value;
+          if (typeof defaults.Channels[i] == "number") {
+            this.Channels[i].Value = defaults.Channels[i];
+          } else {
+            this.Channels[i].Value = defaults.Channels[i].Value;
+          }
         }
       }
     };
@@ -120,11 +124,20 @@ angular.module("MooringLights.services", [])
 
   // Gets all the scenes from local storage
   this.getScenes = function() {
-    var saved = JSON.parse($window.localStorage.getItem("scenes") || "[]");
-
+    var saved = $window.localStorage.getItem("scenes");
     var scenes = [];
-    for (var i = 0; i < saved.length; i++) {
-      scenes[i] = new Scene(saved[i]);
+    if (saved) {
+      // Parse the saved list
+      saved = JSON.parse(saved);
+      for (var i = 0; i < saved.length; i++) {
+        scenes[i] = new Scene(saved[i]);
+      }
+    } else {
+      // Create a default set
+      scenes.push(new Scene({ID: 0, Name: "All Off", Mirror: true, Channels: [0, 0, 0, 0, 0, 0] }));
+      scenes.push(new Scene({ID: 1, Name: "All On", Mirror: true, Channels: [0xff, 0xff, 0xff, 0xff, 0xff, 0xff] }));
+      scenes.push(new Scene({ID: 2, Name: "Gradient", Mirror: true, Channels: [0x20, 0x80, 0xff, 0xff, 0x80, 0x20] }));
+      this.saveScenes(scenes);
     }
 
     return scenes;
