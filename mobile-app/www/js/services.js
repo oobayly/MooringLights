@@ -40,7 +40,6 @@ angular.module("MooringLights.services", [])
 
 .factory("Scene", function($window, Channel, TCPClient) {
   var CHANNELS_PER_SCENE = 6;
-  var CHANNELS_PER_MIRROR = CHANNELS_PER_SCENE / 2;
   var DEFAULTS = {Name: "", Mirror: true, Channels: []};
 
   var Scene = function(defaults) {
@@ -55,41 +54,6 @@ angular.module("MooringLights.services", [])
       if (defaults && defaults.Channels) {
         for (var i = 0; i < CHANNELS_PER_SCENE; i++) {
           this.Channels[i].Value = defaults.Channels[i].Value;
-        }
-      }
-    };
-
-    // Get the current channel values
-    this.getChannels = function() {
-      // Return a deep copy of the channel values
-      if (this.Mirror) {
-        var resp = [];
-        for (var i = 0; i < CHANNELS_PER_MIRROR; i++) {
-          resp[i] = angular.copy(this.Channels[i]);
-        }
-        return resp;
-      } else {
-        return angular.copy(this.Channels);
-      }
-    };
-
-    // Set the current channel values
-    this.setChannels = function(channels) {
-      if (this.Mirror && (channels.length !== CHANNELS_PER_MIRROR))
-        throw CHANNELS_PER_MIRROR + " channels are required for a mirrored scene";
-
-      if (!this.Mirror && (channels.length !== CHANNELS_PER_SCENE))
-        throw CHANNELS_PER_SCENE + " channels are required for standard scene";
-
-      if (this.Mirror) {
-        for (var i = 0; i < CHANNELS_PER_SCENE; i++) {
-          var index = (i < CHANNELS_PER_MIRROR) ? i : (CHANNELS_PER_SCENE - 1 - i);
-          this.Channels[i].Value = channels[index].Value;
-        }
-
-      } else {
-        for (var i = 0; i < CHANNELS_PER_SCENE; i++) {
-          this.Channels[i].Value = channels[i].Value;
         }
       }
     };

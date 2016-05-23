@@ -1,4 +1,8 @@
-<ion-view title="Edit Scheme">
+<ion-view>
+  <ion-nav-title>
+    <span ng-show="!IsNew">Edit Scheme</span>
+    <span ng-show="IsNew">Add new Scheme</span>
+  </ion-nav-title>
   <ion-nav-buttons side="right">
   </ion-nav-buttons>
 
@@ -7,12 +11,12 @@
       <ion-item class="item-divider">Master Brightness</ion-item>
 
       <ion-item class="range range-positive">
-        <i class="icon ion-ios-sunny-outline" ng-click="onDownClicked(Intensity)"></i>
-        <input type="range" min="0" max="255" value="128"
+        <i class="icon ion-ios-sunny-outline" ng-click="onDownClicked(null, Intensity)"></i>
+        <input type="range" min="0" max="255"
                ng-model="Intensity.Value"
                ng-value="Intensity.Value"
                ng-change="onIntensityChanged(Intensity)">
-        <i class="icon ion-ios-sunny" ng-click="onUpClicked(Intensity)"></i>
+        <i class="icon ion-ios-sunny" ng-click="onUpClicked(null, Intensity)"></i>
       </ion-item>
 
       <ion-item class="item-divider">Options</ion-item>
@@ -40,13 +44,13 @@
         <span ng-show="!Scene.Mirror">Left to Right</span>
       </ion-item>
 
-      <ion-item class="range range-positive" ng-repeat="channel in Channels">
-        <i class="icon ion-ios-sunny-outline" ng-click="onDownClicked(channel)"></i>
-        <input type="range" min="0" max="255" value="128"
+      <ion-item class="range range-positive" ng-repeat="channel in getChannels()">
+        <i class="icon ion-ios-sunny-outline" ng-click="onDownClicked($index, channel)"></i>
+        <input type="range" min="0" max="255"
                ng-model="channel.Value"
                ng-value="channel.Value"
-               ng-change="onChannelChanged(channel)">
-        <i class="icon ion-ios-sunny" ng-click="onUpClicked(channel)"></i>
+               ng-change="onChannelChanged($index, channel)">
+        <i class="icon ion-ios-sunny" ng-click="onUpClicked($index, channel)"></i>
       </ion-item>
 
       <label class="item">

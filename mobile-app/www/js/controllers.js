@@ -157,11 +157,20 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
 .controller("EditCtrl", function($scope, $rootScope, $ionicHistory, $ionicPopup, $stateParams, LightsService, Channel, Scene) {
   $scope.Scene = {};
 
-  $scope.Channels = [];
+  $scope.IsNew = false;
 
   $scope.Intensity = new Channel({IsIntensity: true});
 
   $scope.setLevelTimeout = null;
+
+  // Raised when the intensity slider value is changed
+  $scope.onChannelChanged = function(index, item) {
+    if ($scope.Scene.Mirror) {
+      $scope.Scene.Channels[$scope.Scene.Channels.length - 1 - index].Value = $scope.Scene.Channels[index].Value;
+    }
+
+    $scope.setLevels();
+  }
 
   // Raised when the intensity slider value is changed
   $scope.onIntensityChanged = function(item) {
@@ -173,32 +182,34 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
     $rootScope.$broadcast("intensity-changed", item);
   }
 
-  // Raised when the intensity slider value is changed
-  $scope.onChannelChanged = function(item) {
-    $scope.Scene.setChannels($scope.Channels);
-
-    $scope.setLevels();
-  }
-
   // Raised when the darker button is pressed
-  $scope.onDownClicked = function(item) {
+  $scope.onDownClicked = function(index, item) {
     item.incrementDown();
 
     if (item.IsIntensity) {
       $scope.onIntensityChanged(item)
     } else {
-      $scope.onChannelChanged(item);
+      $scope.onChannelChanged(index, item);
+    }
+  };
+
+  $scope.onMirrorChanged = function() {
+    if ($scope.Scene.Mirror) {
+      // Make sure the values are mirrored
+      for (var i = 0; i < $scope.Scene.Channels.length / 2; i++) {
+        $scope.Scene.Channels[$scope.Scene.Channels.length - 1 - i].Value = $scope.Scene.Channels[i].Value;
+      }
     }
   };
 
   // Raised when the brighter button is pressed
-  $scope.onUpClicked = function(item) {
+  $scope.onUpClicked = function(index, item) {
     item.incrementUp();
 
     if (item.IsIntensity) {
       $scope.onIntensityChanged(item)
     } else {
-      $scope.onChannelChanged(item);
+      $scope.onChannelChanged(index, item);
     }
   };
 
@@ -214,6 +225,17 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
     LightsService.saveScene($scope.Scene);
     $rootScope.$broadcast("scenes-changed");
     $ionicHistory.goBack();
+  };
+
+  $scope.getChannels = function() {
+    if (!$scope.Scene)
+      return null;
+
+    if ($scope.Scene.Mirror) {
+      return $scope.Scene.Channels.slice(0, $scope.Scene.Channels.length / 2);
+    } else {
+      return $scope.Scene.Channels;
+    }
   };
 
   $scope.setLevels = function() {
@@ -239,19 +261,12 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
     }, 100);
   };
 
-  $scope.onMirrorChanged = function() {
-    // Fetch the correct number of channels
-    $scope.Channels = $scope.Scene.getChannels();
-
-    // And re-write them
-    $scope.onChannelChanged();
-  };
-
   $scope.initialize = function() {
     if ($stateParams.id) {
       $scope.Scene = LightsService.getScene($stateParams.id);
     } else {
       $scope.Scene = new Scene();
+      $scope.IsNew = true;
     }
 
     $scope.onMirrorChanged();
