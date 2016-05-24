@@ -286,20 +286,8 @@ angular.module("MooringLights.services", [])
           received = data;
         };
 
-        socket.open(settings.Host, settings.Port, function() {
-          // Write the data once opened
-          self.logMessage("Writing " + bytes.length + " bytes to the socket", bytes);
-          socket.write(bytes);
-
-        }, function(error) {
-          q.reject({
-            message: "An error occurred connecting to the controller",
-            error: error
-          });
-
-        });
-
-        $timeout(function() {
+        // Open connection timer
+        var timeout = $timeout(function() {
           console.log("Connection timed out.");
           socket.close(function() {
             q.reject({
@@ -314,6 +302,22 @@ angular.module("MooringLights.services", [])
 
           })
         }, self.defaults.Timeout);
+
+        socket.open(settings.Host, settings.Port, function() {
+          // Once the connection is open, immediately cancel the timeout timer
+          $timeout.cancel(timeout);
+
+          // Write the data once opened
+          self.logMessage("Writing " + bytes.length + " bytes to the socket", bytes);
+          socket.write(bytes);
+
+        }, function(error) {
+          q.reject({
+            message: "An error occurred connecting to the controller",
+            error: error
+          });
+
+        });
 
       }
 
