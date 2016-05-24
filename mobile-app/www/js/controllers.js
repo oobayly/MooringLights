@@ -108,7 +108,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
       console.log("Couldn't set fade interval:");
       console.log(JSON.stringify(error));
 
-      $cordovaToast.show(error.message, "long", "bottom");
+      $cordovaToast.showLongBottom(error.message);
     });
   };
 
@@ -133,13 +133,14 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
       .then(function(response) {
         console.log("Set levels successfuly:");
         console.log(JSON.stringify(response));
+        $cordovaToast.showLongBottom("Lights have been set");
 
       }).catch(function(error) {
         console.log("Couldn't write levels:");
         console.log(JSON.stringify(error));
 
         $scope.SelectedSceneID = null;
-        $cordovaToast.show(error.message, "long", "bottom");
+        $cordovaToast.showLongBottom(error.message);
       });
 
     }, 100);
@@ -163,7 +164,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
       console.log("Couldn't set sleep timeout:");
       console.log(JSON.stringify(error));
 
-      $cordovaToast.show(error.message, "long", "bottom");
+      $cordovaToast.showLongBottom(error.message);
     });
   };
 
@@ -215,7 +216,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
         console.log("Couldn't get fade interval:");
         console.log(JSON.stringify(error));
 
-        $cordovaToast.show(error.message, "long", "bottom");
+        $cordovaToast.showLongBottom(error.message);
       });
     }
   };
@@ -275,7 +276,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
         console.log("Couldn't get sleep interval:");
         console.log(JSON.stringify(error));
 
-        $cordovaToast.show(error.message, "long", "bottom");
+        $cordovaToast.showLongBottom(error.message);
       });
     }
   };
@@ -293,13 +294,13 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
         message += String.fromCharCode(response.data[i]);
       }
       message += "°"
-      $cordovaToast.show(message, "long", "bottom");
+      $cordovaToast.showLongBottom(message);
 
     }).catch(function(error) {
       console.log("Couldn't get temperature:");
       console.log(JSON.stringify(error));
 
-      $cordovaToast.show(error.message, "long", "bottom");
+      $cordovaToast.showLongBottom(error.message);
     })
   }
 
@@ -429,12 +430,15 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
 
       $scope.Scene.writeLevels($scope.Intensity.Value,
         function(hasError) {
-          if (hasError)
-            $cordovaToast.show("An error occured while setting the levels.", "long", "bottom");
+          if (hasError) {
+            $cordovaToast.showLongBottom("An error occured while setting the lights");
+          } else {
+            $cordovaToast.showLongBottom("Lights have been set");
+          }
         },
         function(errorMessage, originalError) {
           console.log("Couldn't writeLevels: " + originalError || errorMessage);
-          $cordovaToast.show(errorMessage, "long", "bottom");
+          $cordovaToast.showLongBottom(errorMessage);
           $scope.SelectedSceneID = null;
         }
       );
