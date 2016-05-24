@@ -31,11 +31,11 @@
 // Reset times
 #define CHECK_ESP_INTERVAL 60000 /* The interval after which the controller should check if the ESP module has reset (in ms) */
 #define RESET_WIFI_INTERVAL 60000 /* The interval after which the controller should reconnect the WiFi after an error (in ms) */
-#define SLEEP_AFTER_INTERVAL 7200000 /* The timer after which the controller should go to sleep (in ms) */
+//#define SLEEP_AFTER_INTERVAL 7200000 /* The timer after which the controller should go to sleep (in ms) */
 
 #define CHECK_ESP_TICKS (CHECK_ESP_INTERVAL / TIMER1_INTERVAL)
 #define RESET_WIFI_TICKS (RESET_WIFI_INTERVAL / TIMER1_INTERVAL)
-#define SLEEP_AFTER_TICKS (SLEEP_AFTER_INTERVAL / TIMER1_INTERVAL)
+//#define SLEEP_AFTER_TICKS (SLEEP_AFTER_INTERVAL / TIMER1_INTERVAL)
 
 // TCP Server settings
 #define SERVER_PORT 8888
@@ -82,7 +82,7 @@ typedef struct Trigger {
 
 // Lights
 #define LIGHTS_MAX_COUNT 6
-#define LIGHTS_FADE_INTERVAL 500 /* Fade interval between programs (is ms) */
+//#define LIGHTS_FADE_INTERVAL 500 /* Fade interval between programs (is ms) */
 
 // Defines a chaser
 typedef struct Chaser {
@@ -120,6 +120,12 @@ typedef struct Error {
   volatile uint16_t blinkSteps;
   volatile uint16_t totalSteps;
 } Error;
+
+// Configuration
+typedef struct Config {
+  uint16_t fade_interval;
+  uint32_t sleep_interval;
+} Config;
 
 // The mode type
 typedef enum {

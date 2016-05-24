@@ -20,7 +20,7 @@ bool WiFi::getState() {
   return esp->getMUX();
 }
 
-bool WiFi::read(const PWM * const pwm, Chaser * const chaser) {
+bool WiFi::read(Config * const config, const PWM * const pwm, Chaser * const chaser) {
   uint8_t len = 0;
   uint8_t mux_id;
   bool fromWiFi = false;
@@ -57,13 +57,30 @@ bool WiFi::read(const PWM * const pwm, Chaser * const chaser) {
     chaser->clear();
     writeResponse(fromWiFi, mux_id, F("+OK"));
     resp = true;
+    
+  } else if (((len == 6) || (len == 6 + 1 + sizeof(uint16_t))) && (strncmp((char *)this->buffer, "FADE", 4) == 0)) {
+    // FADE u\r\n
+    // FADE\r\n
+    //  u: uint16_t containing the fade interval (optional)
+
+    if (len == 6 + 1 + sizeof(uint16_t)) {
+      config->fade_interval = *(uint16_t *)(this->buffer + 5);
+      config_write(config);
+    }
+
+    uint8_t message[4 + sizeof(uint16_t)];
+    memcpy(message, F("+OK "), 4);
+    memcpy(message + 4, &config->fade_interval, sizeof(uint16_t));
+      
+    writeResponse(fromWiFi, mux_id, message, 4 + sizeof(uint16_t));
+    resp = false;
 
   } else if ((len == 8) && (strncmp((char *)this->buffer, "LOAD ", 5) == 0)) {
     // Load n\r\n
     //   n: ASCII char containing decimal number
     uint8_t number = buffer[5] - 0x30;
     if (number < RF_COUNT) {
-      memory_read(number, chaser);
+      chaser_read(number, chaser);
       writeResponse(fromWiFi, mux_id, F("+OK"));
       resp = true;
     } else {
@@ -71,16 +88,16 @@ bool WiFi::read(const PWM * const pwm, Chaser * const chaser) {
       resp = false;
     }
     
-  } if ((len == 8) && (strncmp((char *)this->buffer, "READ ", 5) == 0)) {
+  } else if ((len == 8) && (strncmp((char *)this->buffer, "READ ", 5) == 0)) {
     // READ n\r\n
     //   n: ASCII char containing decimal number
     uint8_t number = buffer[5] - 0x30;
     Chaser chaser;
     if (number < RF_COUNT) {
-      memory_read(number, &chaser);
+      chaser_read(number, &chaser);
 
       uint8_t message[4 + sizeof(Chaser)];
-      memcpy(message, "+OK ", 4);
+      memcpy(message, F("+OK "), 4);
       memcpy(message + 4, (uint8_t *)&chaser, PWM_COUNT);
       
       writeResponse(fromWiFi, mux_id, message, 4 + sizeof(Chaser));
@@ -99,6 +116,23 @@ bool WiFi::read(const PWM * const pwm, Chaser * const chaser) {
     writeResponse(fromWiFi, mux_id, F("+OK"));
     resp = true;
     
+  } else if (((len == 7) || (len == 7 + 1 + sizeof(uint32_t))) && (strncmp((char *)this->buffer, "SLEEP", 5) == 0)) {
+    // SLEEP u\r\n
+    // SLEEP\r\n
+    //  u: uint32_t containing the sleep interval (optional)
+
+    if (len == 7 + 1 + sizeof(uint32_t)) {
+      config->sleep_interval = *(uint32_t *)(this->buffer + 6);
+      config_write(config);
+    }
+
+    uint8_t message[4 + sizeof(uint32_t)];
+    memcpy(message, F("+OK "), 4);
+    memcpy(message + 4, &config->sleep_interval, sizeof(uint32_t));
+      
+    writeResponse(fromWiFi, mux_id, message, 4 + sizeof(uint32_t));
+    resp = false;
+
   } else if ((len == 8) && (strncmp((char *)this->buffer, "STATUS\r\n", 8) == 0)) {
     // STATUS\r\n
     uint8_t pins[PWM_COUNT];
@@ -126,16 +160,17 @@ bool WiFi::read(const PWM * const pwm, Chaser * const chaser) {
     //   c: uint8_t array containing Chaser data
     uint8_t number = buffer[6] - 0x30;
     if (number < RF_COUNT) {
-      memory_write(number, (Chaser *)(buffer + 7));
+      chaser_write(number, (Chaser *)(buffer + 7));
       writeResponse(fromWiFi, mux_id, F("+OK"));
       
     } else {
       writeResponse(fromWiFi, mux_id, F("-ER"));
     }
     resp = false;
-    
+ 
   } else {
     // Everything else is unknown
+    Serial.println(len);
     writeResponse(fromWiFi, mux_id, F("-ER"));
   }
 

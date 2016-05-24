@@ -22,6 +22,9 @@ volatile Counter * const counters = new Counter();
 volatile mode_e mode = POST;
 volatile Error * const error = new Error();
 
+// Configuration
+volatile Config * const config = new Config();
+
 void setup();
 
 void setupPrograms();

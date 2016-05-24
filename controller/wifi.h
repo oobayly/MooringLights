@@ -16,7 +16,7 @@ class WiFi {
 
     bool setup(uint8_t * error);
 
-    bool read(const PWM * const pwm, Chaser * const chaser);
+    bool read(Config * const config, const PWM * const pwm, Chaser * const chaser);
 
   private:
     uint8_t * const buffer = new uint8_t[READ_BUFFER_SIZE];

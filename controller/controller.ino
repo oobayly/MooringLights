@@ -15,6 +15,20 @@ void setup() {
   Serial.setTimeout(SERIAL_TIMEOUT);
 #endif
 
+  // Read in the saved configuration, and make sure it's with acceptable bounds
+  Serial.println("Loading configuration...");
+  config_read((Config *)config);
+  if (config->fade_interval < 250) {
+    config->fade_interval = 250;
+  }
+  if (config->sleep_interval < 30000) {
+    config->sleep_interval = 7200000;
+  }
+  Serial.print("\tFade Interval:\t");
+  Serial.println(config->fade_interval);
+  Serial.print("\tSleep Interval:\t");
+  Serial.println(config->sleep_interval);
+
   pinMode(STATUS_LED, OUTPUT);
   pinMode(TEMP_PIN, INPUT); // TMP36
 
@@ -63,7 +77,7 @@ void setupChasers() {
   l.lights[3][3] = 0x00;
   l.lights[3][4] = 0x00;
   l.lights[3][5] = 0x00;
-  memory_write(0, &l);
+  chaser_write(0, &l);
 
   l.count=2;
   l.interval = 2000;
@@ -79,7 +93,7 @@ void setupChasers() {
   l.lights[1][3] = 0x0;
   l.lights[1][4] = 0x0;
   l.lights[1][5] = 0x0;
-  memory_write(1, &l);
+  chaser_write(1, &l);
 
   l.count=1;
   l.interval = 10000;
@@ -89,7 +103,7 @@ void setupChasers() {
   l.lights[0][3] = 0xff;
   l.lights[0][4] = 0xff;
   l.lights[0][5] = 0xff;
-  memory_write(2, &l);
+  chaser_write(2, &l);
 }
 
 void setupPWM() {
@@ -120,7 +134,7 @@ bool setupWiFi() {
 }
 
 void loop() {
-  if (wifi->read(pwm, program->queued)) {
+  if (wifi->read((Config *)config, pwm, program->queued)) {
     queueChaser();
   }
   
@@ -156,7 +170,7 @@ void clearChaser() {
 }
 
 void queueChaser(uint8_t index) {
-  memory_read(index, program->queued);
+  chaser_read(index, program->queued);
   queueChaser();
 }
 
@@ -233,7 +247,7 @@ void timer1_tick() {
     // Every TIMER1_INTERVAL
     counters->timer1++;
     counters->check_esp++;
-    if (++counters->sleep > SLEEP_AFTER_TICKS) {
+    if (++counters->sleep > (config->sleep_interval / TIMER1_INTERVAL)) {
       clearChaser();
       mode = SLEEP;
     }
@@ -246,7 +260,7 @@ void timer1_tick() {
       memcpy(program->current, program->queued, sizeof(Chaser));
       program->current->index = 0;
       
-      pwm->setLights(program->current->lights[program->current->index], LIGHTS_FADE_INTERVAL / TIMER1_INTERVAL);
+      pwm->setLights(program->current->lights[program->current->index], config->fade_interval / TIMER1_INTERVAL);
       
     } else if ((program->current->count > 1) && (counters->timer1 % (program->current->interval / TIMER1_INTERVAL)) == 0) {
       // Multiple settings and program fade interval has elapsed
