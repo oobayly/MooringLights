@@ -177,7 +177,7 @@ angular.module("MooringLights.services", [])
 
 })
 
-.factory("TCPClient", function($window, $q) {
+.factory("TCPClient", function($window, $q, $timeout) {
   var DEFAULTS = {
     Logging: false,
     Timeout: 10000 // Default timeout
@@ -298,6 +298,22 @@ angular.module("MooringLights.services", [])
           });
 
         });
+
+        $timeout(function() {
+          console.log("Connection timed out.");
+          socket.close(function() {
+            q.reject({
+              message: "The connection to the controller timed out",
+            });
+
+          }, function(error) {
+            q.reject({
+              message: "The connection to the controller timed out",
+              error: error
+            });
+
+          })
+        }, self.defaults.Timeout);
 
       }
 
