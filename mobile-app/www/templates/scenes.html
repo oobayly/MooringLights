@@ -36,15 +36,19 @@
   </ion-content>
 
   <script id="menu-popover.html" type="text/ng-template">
-    <ion-popover-view>
+    <ion-popover-view class="popover-auto-height">
       <ion-header-bar class="bar-dark">
         <h1 class="title">Options</h1>
       </ion-header-bar>
-      <ion-content>
+      <ion-content scroll="false">
         <ion-list>
-          <ion-item class="item-icon-left" ng-click="showSettings()">
-            <i class="icon ion-gear-a"></i>
-            Network Settings
+          <ion-item class="item-icon-left" ng-click="showStatus()">
+            <i class="icon ion-ios-sunny"></i>
+            Lights Status
+          </ion-item>
+          <ion-item class="item-icon-left" ng-click="showTemperature()">
+            <i class="icon ion-thermometer"></i>
+            Temperature
           </ion-item>
           <ion-item class="item-icon-left" ng-click="showFadeInterval()">
             <i class="icon ion-ios-timer-outline"></i>
@@ -54,12 +58,20 @@
             <i class="icon ion-android-alarm-clock"></i>
             Sleep Timeout
           </ion-item>
-          <ion-item class="item-icon-left" ng-click="showTemperature()">
-            <i class="icon ion-thermometer"></i>
-            Temperature
+          <ion-item class="item-icon-left" ng-click="showSettings()">
+            <i class="icon ion-gear-a"></i>
+            Network Settings
           </ion-item>
         </ion-list>
       </ion-content>
     </ion-popover-view>
+  </script>
+
+  <script id="status-popup.html" type="text/ng-template">
+    <ion-list>
+      <ion-item class="center huge">
+        <i class="icon ion-ios-sunny" style="opacity: {{value / 255}}" ng-repeat="value in status track by $index"></i>
+      </ion-item>
+    </ion-list>
   </script>
 </ion-view>

@@ -408,6 +408,40 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
     }
   };
 
+  $scope.showStatus = function(status) {
+    if (status && status.length) {
+      var scope = $rootScope.$new(true);
+      scope.status = status;
+
+      var popup = $ionicPopup.alert({
+        scope: scope,
+        title: "Current Light Status",
+        templateUrl: "status-popup.html"
+      }).then(function() {
+        scope.$destroy();
+      });
+
+    } else {
+      var client = new TCPClient({
+        Logging: true
+      });
+      client.send("STATUS", null)
+      .then(function(response) {
+        var status = [];
+        for (var i = 4; i < response.data.length; i++) {
+          status.push(response.data[i]);
+        }
+        $scope.showStatus(status);
+
+      }).catch(function(error) {
+        console.log("Couldn't get status:");
+        console.log(JSON.stringify(error));
+
+        $cordovaToast.showLongBottom(error.message);
+      })
+    }
+  };
+
   $scope.showTemperature = function() {
     $scope.menuPopover.hide();
 
