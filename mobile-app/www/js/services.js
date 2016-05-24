@@ -180,7 +180,6 @@ angular.module("MooringLights.services", [])
 .factory("TCPClient", function($window, $q, $timeout) {
   var DEFAULTS = {
     Logging: false,
-    Timeout: 10000 // Default timeout
   }
 
   var TCPClient = function(defaults) {
@@ -301,7 +300,7 @@ angular.module("MooringLights.services", [])
             });
 
           })
-        }, self.defaults.Timeout);
+        }, settings.Timeout || 10000);
 
         socket.open(settings.Host, settings.Port, function() {
           // Once the connection is open, immediately cancel the timeout timer

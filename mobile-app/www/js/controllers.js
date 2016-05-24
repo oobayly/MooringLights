@@ -5,7 +5,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
   // These are the scenes that are currently available
   $scope.Scenes = [];
 
-  $scope.Settings = {Host: "", Port: 8888};
+  $scope.Settings = {Host: "", Port: 8888, Timeout: 10000};
 
   $scope.Intensity = new Channel();
 
