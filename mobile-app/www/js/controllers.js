@@ -89,7 +89,6 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
 
   $scope.reloadScenes = function() {
     $scope.Scenes = LightsService.getScenes();
-    $scope.setLevels();
   };
 
   $scope.setFadeInterval = function(interval) {
