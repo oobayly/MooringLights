@@ -94,8 +94,8 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
 
   $scope.setFadeInterval = function(interval) {
     var data = [
-      (interval >> 8) & 0xff,
-      (interval) & 0xff
+      (interval) & 0xff,
+      (interval >> 8) & 0xff
       ];
 
     var client = new TCPClient({
@@ -148,10 +148,10 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
 
   $scope.setSleepTimeout = function(timeout) {
     var data = [
-      (timeout >> 24) & 0xff,
-      (timeout >> 16) & 0xff,
+      (timeout) & 0xff,
       (timeout >> 8) & 0xff,
-      (timeout) & 0xff
+      (timeout >> 16) & 0xff,
+      (timeout >> 24) & 0xff
       ];
 
     var client = new TCPClient({
@@ -210,7 +210,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
       client.send("FADE", null)
       .then(function(response) {
         // Returns a uint16_t
-        $scope.showFadeInterval((response.data[4] << 8) + response.data[5]);
+        $scope.showFadeInterval((response.data[5] << 8) + response.data[4]);
 
       }).catch(function(error) {
         console.log("Couldn't get fade interval:");
@@ -270,7 +270,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
       client.send("SLEEP", null)
       .then(function(response) {
         // Returns a uint32_t
-        $scope.showSleepTimeout((response.data[4] << 24) + (response.data[5] << 16) + (response.data[6] << 8) + response.data[7]);
+        $scope.showSleepTimeout((response.data[7] << 24) + (response.data[6] << 16) + (response.data[5] << 8) + response.data[4]);
 
       }).catch(function(error) {
         console.log("Couldn't get sleep interval:");
