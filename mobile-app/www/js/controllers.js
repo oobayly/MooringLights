@@ -92,6 +92,26 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
     $scope.setLevels();
   };
 
+  $scope.setFadeInterval = function(interval) {
+    var data = [
+      (interval >> 8) & 0xff,
+      (interval) & 0xff
+      ];
+
+    var client = new TCPClient({
+      Logging: true
+    });
+    client.send("FADE", data)
+    .then(function(response) {
+
+    }).catch(function(error) {
+      console.log("Couldn't set fade interval:");
+      console.log(JSON.stringify(error));
+
+      $cordovaToast.show(error.message, "long", "bottom");
+    });
+  };
+
   $scope.setLevels = function() {
     if ($scope.setLevelTimeout) {
       window.clearTimeout($scope.setLevelTimeout);
@@ -125,10 +145,139 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
     }, 100);
   };
 
+  $scope.setSleepTimeout = function(timeout) {
+    var data = [
+      (timeout >> 24) & 0xff,
+      (timeout >> 16) & 0xff,
+      (timeout >> 8) & 0xff,
+      (timeout) & 0xff
+      ];
+
+    var client = new TCPClient({
+      Logging: true
+    });
+    client.send("SLEEP", data)
+    .then(function(response) {
+
+    }).catch(function(error) {
+      console.log("Couldn't set sleep timeout:");
+      console.log(JSON.stringify(error));
+
+      $cordovaToast.show(error.message, "long", "bottom");
+    });
+  };
+
+  $scope.showFadeInterval = function(interval) {
+    $scope.menuPopover.hide();
+
+    if (interval) {
+      var scope = $rootScope.$new(true);
+      scope.data = {fadeInterval: interval};
+
+      var popup = $ionicPopup.show({
+        template: "<input type='number' min='250' max='10000' step='50' ng-model='data.fadeInterval'>",
+        title: "Enter the fade interval",
+        subTitle: "The number of milliseconds it takes for the lights to fade.",
+        scope: scope,
+        buttons: [
+          {text: "Cancel"},
+          {
+            text: "Save",
+            type: "button-positive",
+            onTap: function(e) {
+              if (!scope.data.fadeInterval) {
+                e.preventDefault();
+              } else {
+                return scope.data.fadeInterval;
+              }
+            }
+          }
+        ]
+      });
+
+      popup.then(function(interval) {
+        scope.$destroy();
+        if (interval) {
+          $scope.setFadeInterval(interval);
+        }
+      });
+
+    } else {
+      var client = new TCPClient({
+        Logging: true
+      });
+      client.send("FADE", null)
+      .then(function(response) {
+        // Returns a uint16_t
+        $scope.showFadeInterval((response.data[4] << 8) + response.data[5]);
+
+      }).catch(function(error) {
+        console.log("Couldn't get fade interval:");
+        console.log(JSON.stringify(error));
+
+        $cordovaToast.show(error.message, "long", "bottom");
+      });
+    }
+  };
+
   // Show the settings dialog
   $scope.showSettings = function() {
     $scope.menuPopover.hide();
     $scope.settingsModal.show();
+  };
+
+  $scope.showSleepTimeout = function(timeout) {
+    $scope.menuPopover.hide();
+
+    if (timeout) {
+      var scope = $rootScope.$new(true);
+      scope.data = {time: new Date(timeout % 86400000)}; // Limit to one day
+
+      var popup = $ionicPopup.show({
+        template: "<input type='time' step='60' ng-model='data.time'>",
+        title: "Enter the sleep timeout",
+        subTitle: "The time after which the lights will automatically turn off.",
+        scope: scope,
+        buttons: [
+          {text: "Cancel"},
+          {
+            text: "Save",
+            type: "button-positive",
+            onTap: function(e) {
+              var sleepTimeout = scope.data.time.getTime();
+              if (!sleepTimeout) {
+                e.preventDefault();
+              } else {
+                return sleepTimeout;
+              }
+            }
+          }
+        ]
+      });
+
+      popup.then(function(timeout) {
+        scope.$destroy();
+        if (timeout) {
+          $scope.setSleepTimeout(timeout);
+        }
+      });
+
+    } else {
+      var client = new TCPClient({
+        Logging: true
+      });
+      client.send("SLEEP", null)
+      .then(function(response) {
+        // Returns a uint32_t
+        $scope.showSleepTimeout((response.data[4] << 24) + (response.data[5] << 16) + (response.data[6] << 8) + response.data[7]);
+
+      }).catch(function(error) {
+        console.log("Couldn't get sleep interval:");
+        console.log(JSON.stringify(error));
+
+        $cordovaToast.show(error.message, "long", "bottom");
+      });
+    }
   };
 
   $scope.showTemperature = function() {
