@@ -1,5 +1,133 @@
 angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.services"])
 
+// EditCtrl: The controller for adding/editing scenes
+.controller("EditCtrl", function($scope, $rootScope, $ionicHistory, $ionicPopup, $stateParams, LightsService, Channel, Scene) {
+  $scope.Scene = {};
+
+  $scope.IsNew = false;
+
+  $scope.Intensity = new Channel({IsIntensity: true});
+
+  $scope.setLevelTimeout = null;
+
+  // Raised when the intensity slider value is changed
+  $scope.onChannelChanged = function(index, item) {
+    if ($scope.Scene.Mirror) {
+      $scope.Scene.Channels[$scope.Scene.Channels.length - 1 - index].Value = $scope.Scene.Channels[index].Value;
+    }
+
+    $scope.setLevels();
+  }
+
+  // Raised when the intensity slider value is changed
+  $scope.onIntensityChanged = function(item) {
+    localStorage.setItem("intensity", item.Value);
+
+    $scope.setLevels();
+
+    // Also need to broadcast that the intensity has changed
+    $rootScope.$broadcast("intensity-changed", item);
+  }
+
+  // Raised when the darker button is pressed
+  $scope.onDownClicked = function(index, item) {
+    item.incrementDown();
+
+    if (item.IsIntensity) {
+      $scope.onIntensityChanged(item)
+    } else {
+      $scope.onChannelChanged(index, item);
+    }
+  };
+
+  $scope.onMirrorChanged = function() {
+    if ($scope.Scene.Mirror) {
+      // Make sure the values are mirrored
+      for (var i = 0; i < $scope.Scene.Channels.length / 2; i++) {
+        $scope.Scene.Channels[$scope.Scene.Channels.length - 1 - i].Value = $scope.Scene.Channels[i].Value;
+      }
+    }
+  };
+
+  // Raised when the brighter button is pressed
+  $scope.onUpClicked = function(index, item) {
+    item.incrementUp();
+
+    if (item.IsIntensity) {
+      $scope.onIntensityChanged(item)
+    } else {
+      $scope.onChannelChanged(index, item);
+    }
+  };
+
+  $scope.doSave = function() {
+    if (!$scope.Scene.Name) {
+      $ionicPopup.alert({
+        title: "Validation error",
+        template: "Please enter a name for the Lighting Scheme",
+      });
+      return;
+    }
+
+    LightsService.saveScene($scope.Scene);
+    $rootScope.$broadcast("scenes-changed");
+    $ionicHistory.goBack();
+  };
+
+  $scope.getChannels = function() {
+    if (!$scope.Scene)
+      return null;
+
+    if ($scope.Scene.Mirror) {
+      return $scope.Scene.Channels.slice(0, $scope.Scene.Channels.length / 2);
+    } else {
+      return $scope.Scene.Channels;
+    }
+  };
+
+  $scope.setLevels = function() {
+    if ($scope.setLevelTimeout) {
+      window.clearTimeout($scope.setLevelTimeout);
+      $scope.setLevelTimeout = null;
+    }
+
+    $scope.setLevelTimeout = window.setTimeout(function () {
+      $scope.setLevelTimout = null;
+
+      $scope.Scene.writeLevels($scope.Intensity.Value,
+        function(hasError) {
+          if (hasError) {
+            $cordovaToast.showLongBottom("An error occured while setting the lights");
+          } else {
+            $cordovaToast.showLongBottom("Lights have been set");
+          }
+        },
+        function(errorMessage, originalError) {
+          console.log("Couldn't writeLevels: " + originalError || errorMessage);
+          $cordovaToast.showLongBottom(errorMessage);
+          $scope.SelectedSceneID = null;
+        }
+      );
+    }, 100);
+  };
+
+  $scope.initialize = function() {
+    if ($stateParams.id) {
+      $scope.Scene = LightsService.getScene($stateParams.id);
+    } else {
+      $scope.Scene = new Scene();
+      $scope.IsNew = true;
+    }
+
+    $scope.onMirrorChanged();
+
+    // Fetch the previous settings from localstorage
+    $scope.Intensity.Value = parseInt(localStorage.getItem("intensity") || "0");
+  };
+
+  $scope.initialize();
+})
+
 // SceneCtrl: The controller used for displaying all the scenes
 .controller("SceneCtrl", function($scope, $rootScope, $ionicModal, $ionicPopover, $ionicPopup, $cordovaToast, LightsService, Scene, Channel, TCPClient) {
   // These are the scenes that are currently available
@@ -331,134 +459,6 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
     localStorage.setItem("settings", JSON.stringify($scope.Settings));
     $scope.closeSettings();
   };
-})
-
-// EditCtrl: The controller for adding/editing scenes
-.controller("EditCtrl", function($scope, $rootScope, $ionicHistory, $ionicPopup, $stateParams, LightsService, Channel, Scene) {
-  $scope.Scene = {};
-
-  $scope.IsNew = false;
-
-  $scope.Intensity = new Channel({IsIntensity: true});
-
-  $scope.setLevelTimeout = null;
-
-  // Raised when the intensity slider value is changed
-  $scope.onChannelChanged = function(index, item) {
-    if ($scope.Scene.Mirror) {
-      $scope.Scene.Channels[$scope.Scene.Channels.length - 1 - index].Value = $scope.Scene.Channels[index].Value;
-    }
-
-    $scope.setLevels();
-  }
-
-  // Raised when the intensity slider value is changed
-  $scope.onIntensityChanged = function(item) {
-    localStorage.setItem("intensity", item.Value);
-
-    $scope.setLevels();
-
-    // Also need to broadcast that the intensity has changed
-    $rootScope.$broadcast("intensity-changed", item);
-  }
-
-  // Raised when the darker button is pressed
-  $scope.onDownClicked = function(index, item) {
-    item.incrementDown();
-
-    if (item.IsIntensity) {
-      $scope.onIntensityChanged(item)
-    } else {
-      $scope.onChannelChanged(index, item);
-    }
-  };
-
-  $scope.onMirrorChanged = function() {
-    if ($scope.Scene.Mirror) {
-      // Make sure the values are mirrored
-      for (var i = 0; i < $scope.Scene.Channels.length / 2; i++) {
-        $scope.Scene.Channels[$scope.Scene.Channels.length - 1 - i].Value = $scope.Scene.Channels[i].Value;
-      }
-    }
-  };
-
-  // Raised when the brighter button is pressed
-  $scope.onUpClicked = function(index, item) {
-    item.incrementUp();
-
-    if (item.IsIntensity) {
-      $scope.onIntensityChanged(item)
-    } else {
-      $scope.onChannelChanged(index, item);
-    }
-  };
-
-  $scope.doSave = function() {
-    if (!$scope.Scene.Name) {
-      $ionicPopup.alert({
-        title: "Validation error",
-        template: "Please enter a name for the Lighting Scheme",
-      });
-      return;
-    }
-
-    LightsService.saveScene($scope.Scene);
-    $rootScope.$broadcast("scenes-changed");
-    $ionicHistory.goBack();
-  };
-
-  $scope.getChannels = function() {
-    if (!$scope.Scene)
-      return null;
-
-    if ($scope.Scene.Mirror) {
-      return $scope.Scene.Channels.slice(0, $scope.Scene.Channels.length / 2);
-    } else {
-      return $scope.Scene.Channels;
-    }
-  };
-
-  $scope.setLevels = function() {
-    if ($scope.setLevelTimeout) {
-      window.clearTimeout($scope.setLevelTimeout);
-      $scope.setLevelTimeout = null;
-    }
-
-    $scope.setLevelTimeout = window.setTimeout(function () {
-      $scope.setLevelTimout = null;
-
-      $scope.Scene.writeLevels($scope.Intensity.Value,
-        function(hasError) {
-          if (hasError) {
-            $cordovaToast.showLongBottom("An error occured while setting the lights");
-          } else {
-            $cordovaToast.showLongBottom("Lights have been set");
-          }
-        },
-        function(errorMessage, originalError) {
-          console.log("Couldn't writeLevels: " + originalError || errorMessage);
-          $cordovaToast.showLongBottom(errorMessage);
-          $scope.SelectedSceneID = null;
-        }
-      );
-    }, 100);
-  };
-
-  $scope.initialize = function() {
-    if ($stateParams.id) {
-      $scope.Scene = LightsService.getScene($stateParams.id);
-    } else {
-      $scope.Scene = new Scene();
-      $scope.IsNew = true;
-    }
-
-    $scope.onMirrorChanged();
-
-    // Fetch the previous settings from localstorage
-    $scope.Intensity.Value = parseInt(localStorage.getItem("intensity") || "0");
-  };
-
-  $scope.initialize();
 })
 
 ;
