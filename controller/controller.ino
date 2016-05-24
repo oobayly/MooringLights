@@ -123,7 +123,7 @@ bool setupWiFi() {
   bool resp = wifi->setup(&error);
 
   if (resp) {
-    mode = SLEEP;
+    mode = ON;
     digitalWrite(STATUS_LED, HIGH);
   } else {
     mode = ERROR;
@@ -239,17 +239,13 @@ void timer1_tick() {
       error->step = (error->step + 1) % error->totalSteps;
     }
     
-  } else if (mode == SLEEP) {
-    counters->timer1++;
-    counters->check_esp++;
-    
   } else if (mode == ON) {
     // Every TIMER1_INTERVAL
     counters->timer1++;
     counters->check_esp++;
     if (++counters->sleep > (config->sleep_interval / TIMER1_INTERVAL)) {
+      counters->sleep = 0;
       clearChaser();
-      mode = SLEEP;
     }
     
     if (program->hasChanged) {

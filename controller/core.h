@@ -131,7 +131,6 @@ typedef struct Config {
 typedef enum {
   POST, // Power on self test
   ERROR, // An error was encountered - check the lasterr variable
-  SLEEP, // Timed out, lights are turned off
   ON, // Lights have been set
 } mode_e;
 
