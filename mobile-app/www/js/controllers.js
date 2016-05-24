@@ -409,6 +409,8 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
   };
 
   $scope.showStatus = function(status) {
+    $scope.menuPopover.hide();
+
     if (status && status.length) {
       var scope = $rootScope.$new(true);
       scope.status = status;
