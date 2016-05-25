@@ -326,26 +326,29 @@ angular.module("MooringLights.services", [])
             });
 
           } else {
-            var success = true;
-
+            // Data must be received
             if (received) {
               self.logMessage("Received " + received.length + " bytes from the socket", received);
 
-              // If data is received, then it must start with a plus
-              success = received.length && String.fromCharCode(received[0]) === "+";
-            }
+              if (received.length && String.fromCharCode(received[0]) === "+") {
+                q.resolve({
+                  data: received
+                });
 
-            if (success) {
-              q.resolve({
-                data: received
-              });
+              } else {
+                q.reject({
+                  message: "The controller returned an error.",
+                  data: received
+                });
+
+              }
+
             } else {
               q.reject({
-                message: "The controller returned an error.",
-                data: received
+                message: "The controller returned no data"
               });
-            }
 
+            }
           }
         };
 
