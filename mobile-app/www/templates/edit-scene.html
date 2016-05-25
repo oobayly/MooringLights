@@ -60,7 +60,7 @@
   <ion-footer-bar>
     <div class="button-bar">
       <button class="button button-weight-2 icon ion-close-round" ng-click="doBack()">Cancel</button>
-      <button class="button button-weight-3 button-positive icon ion-checkmark-round" ng-click="doSave()">Save</button>
+      <button class="button button-weight-3 button-positive icon ion-checkmark-round" ng-click="doSave()" ng-disabled="!(Scene.Name)">Save</button>
     </div>
   </ion-footer-bar>
 </ion-view>

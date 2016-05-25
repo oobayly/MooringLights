@@ -1,0 +1,51 @@
+<ion-view>
+  <ion-nav-title>
+    <span ng-show="!IsNew">Edit Chaser</span>
+    <span ng-show="IsNew">Add new Chaser</span>
+  </ion-nav-title>
+  <ion-nav-buttons side="right">
+  </ion-nav-buttons>
+
+  <ion-content has-header="true">
+    <div class="card list">
+      <ion-item class="item-divider">Options</ion-item>
+
+      <ion-item class="item item-input">
+        <span class="input-label">Name</span>
+        <input type="text" ng-model="Chaser.Name" ng-readonly="IsController">
+      </ion-item>
+      <ion-item class="item item-input">
+        <span class="input-label">Interval (ms)</span>
+        <input type="number" min="250" "10000" step="50" ng-model="Chaser.Interval">
+      </ion-item>
+      <ion-item class="item item-input item-select item-select-left">
+        <span class="input-label"># Scenes</span>
+        <select ng-model="Chaser.Count">
+          <option ng-repeat="n in [].constructor(6) track by $index">{{$index + 1}}</option>
+        </select>
+      </ion-item>
+
+      <ion-item class="item-divider">Scenes</ion-item>
+      <ion-item class="item-button-right" ng-repeat="scene in getScenes() track by $index" ng-click="onSceneClick(scene)">
+        <div class="item-content">
+          <i class="icon ion-ios-sunny" style="opacity: {{channel.Value / 255}}" ng-repeat="channel in scene.Channels"></i>
+          {{scene.Name}}
+          <div class="buttons">
+            <a class="button button-positive icon ion-edit" href="" ng-click="$event.stopPropagation();"></a>
+          </div>
+        </div>
+      </ion-item>
+
+    </div>
+
+    <pre>{{Chaser | json}}</pre>
+
+  </ion-content>
+
+  <ion-footer-bar>
+    <div class="button-bar">
+      <button class="button button-weight-2 icon ion-close-round" ng-click="doBack()">Cancel</button>
+      <button class="button button-weight-3 button-positive icon ion-checkmark-round" ng-click="doSave()" ng-disabled="!(Chaser.Interval && Chaser.Name)">Save</button>
+    </div>
+  </ion-footer-bar>
+</ion-view>

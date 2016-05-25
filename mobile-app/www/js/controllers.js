@@ -3,6 +3,55 @@
 
 angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.services"])
 
+// EditChaserCtrl: The controller used for adding/editing chasers
+.controller("EditChaserCtrl", function($scope, $rootScope, $window, $ionicHistory, $ionicPopup, $stateParams, $cordovaToast, Channel, Chaser, LightsService, Scene) {
+  $scope.Chaser = {};
+
+  $scope.IsController = false; // Flag indicating whether the Chaser is one stored on the controller
+
+  $scope.IsNew = false;
+
+  $scope.doBack = function() {
+    $ionicHistory.goBack();
+  };
+
+  $scope.getScenes = function() {
+    var resp =  $scope.Chaser.Scenes.slice(0, $scope.Chaser.Count);
+    console.log(resp);
+    return resp;
+  };
+
+  $scope.initialize = function() {
+    if ($stateParams.id) {
+      if (isNaN($stateParams.id)) {
+        $scope.Chaser = new Chaser();
+        $scope.Chaser.read($stateParams.id)
+        .then(function(response) {
+          $scope.IsController = true;
+
+        }).catch(function(error) {
+          console.log("Couldn't read chaser:");
+          console.log(JSON.stringify(error));
+
+          $cordovaToast.showLongBottom(error.message);
+          $scope.doBack();
+
+        });
+
+      } else {
+        //$scope.Scene = LightsService.getScene($stateParams.id);
+
+      }
+
+    } else {
+      $scope.Chaser = new Chaser();
+      $scope.IsNew = true;
+    }
+  };
+
+  $scope.initialize();
+})
+
 // EditSceneCtrl: The controller for adding/editing scenes
 .controller("EditSceneCtrl", function($scope, $rootScope, $window, $ionicHistory, $ionicPopup, $stateParams, $cordovaToast, Channel, LightsService, Scene) {
   $scope.Scene = {};

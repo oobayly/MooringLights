@@ -44,6 +44,14 @@
   font-size: 200%;
 }
 
+/* A select box that is left aligned */
+.item-select.item-select-left select {
+  right: auto !important;
+  padding: 13px 45px 15px 0px !important;
+  direction: ltr !important;
+  width: 65% !important;
+}
+
 /* ===========================
    Popovers
    =========================*/

@@ -30,10 +30,22 @@ angular.module('MooringLights', ["ionic", "MooringLights.controllers"])
     templateUrl: "templates/edit-scene.html",
   })
 
+  .state('add-chaser', {
+    url: "/chaser/add/",
+    controller: 'EditChaserCtrl',
+    templateUrl: "templates/edit-chaser.html",
+  })
+
   .state('edit-scene', {
     url: "/scene/edit/:id",
     controller: 'EditSceneCtrl',
     templateUrl: "templates/edit-scene.html",
+  })
+
+  .state('edit-chaser', {
+    url: "/chaser/edit/:id",
+    controller: 'EditChaserCtrl',
+    templateUrl: "templates/edit-chaser.html",
   })
 
   ;
