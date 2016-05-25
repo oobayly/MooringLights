@@ -5,7 +5,7 @@ angular.module("MooringLights.services", [])
   var DEFAULTS = {Value: 0};
 
   var Channel = function(defaults) {
-    angular.extend(this, DEFAULTS, defaults);
+    angular.extend(this, angular.copy(DEFAULTS), angular.copy(defaults));
 
     this.increment = function(delta) {
       var newValue = parseInt(this.Value) + parseInt(delta);
@@ -43,7 +43,7 @@ angular.module("MooringLights.services", [])
   var DEFAULTS = {Name: "", Mirror: true, Channels: []};
 
   var Scene = function(defaults) {
-    angular.extend(this, DEFAULTS, angular.copy(defaults));
+    angular.extend(this, angular.copy(DEFAULTS), angular.copy(defaults));
 
     this.initialize = function() {
       // Pre-populate with the requisite number of channels
