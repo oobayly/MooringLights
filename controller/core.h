@@ -89,7 +89,7 @@ typedef struct Chaser {
   uint16_t interval; // The fade interval (in ms)
   uint8_t count; // Fade count
   uint8_t index = 0;
-  uint8_t lights[LIGHTS_MAX_COUNT][PWM_COUNT];
+  uint8_t lights[LIGHTS_MAX_COUNT][PWM_COUNT] = {{0}};
 
   void clear() {
     count = 1;
