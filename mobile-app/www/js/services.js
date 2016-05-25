@@ -38,6 +38,114 @@ angular.module("MooringLights.services", [])
   return (Channel);
 })
 
+.factory("Chaser", function($q, $window, Channel, Scene, TCPClient) {
+  var CHANNELS_PER_SCENE = 6;
+  var SCENES_PER_CHASER = 6;
+  var DEFAULTS = {Name: ""};
+
+  var Chaser = function(defaults) {
+    angular.extend(this, angular.copy(DEFAULTS), angular.copy(defaults));
+
+    this.Interval = 1000;
+    this.Count = 1;
+    this.Scenes = [];
+
+    this.initialize = function() {
+      // Pre-populate the scenes
+      for (var i = 0; i < SCENES_PER_CHASER; i++) {
+        this.Scenes[i] = new Scene({
+          Name: "Scene " + (i + 1),
+          Mirror: false
+        });
+      }
+    };
+
+    this.deserialize = function(data) {
+      /*
+      typedef struct Chaser {
+        uint16_t interval; // The fade interval (in ms)
+        uint8_t count; // Fade count
+        uint8_t index = 0;
+        uint8_t lights[LIGHTS_MAX_COUNT][PWM_COUNT];
+      } Chaser;
+      */
+
+      // Deserialize from struct Chaser
+      this.Interval = (data[0]) + (data[1] << 8);
+      this.Count = Math.max(data[2], SCENES_PER_CHASER); // In case un-initialised data is returned
+      for (var i = 0; i < SCENES_PER_CHASER; i++) {
+        for (var j = 0; j < CHANNELS_PER_SCENE; j++) {
+          this.Scenes[i].Channels[j].Value = data[4 + (i * CHANNELS_PER_SCENE) + j];
+        }
+      }
+    };
+
+    this.read = function(button) {
+      var _self = this;
+
+      var q = $q.defer();
+
+      var client = new TCPClient({
+        Logging: true,
+      });
+
+      client.send("READ", [0x30 + button.charCodeAt() - 65])
+      .then(function(response) {
+        // Convert the data to a byte array
+        var data = [];
+        for (var i = 4; i < response.data.length; i++) {
+          data[i - 4] = response.data[i];
+        }
+        _self.Name = "Button " + button;
+        _self.deserialize(data);
+
+        q.resolve(_self);
+
+      }).catch(function(error) {
+        q.reject(error);
+
+      });
+
+      return q.promise;
+    };
+
+    this.write = function(button) {
+      var _self = this;
+
+      var q = $q.defer();
+
+      var client = new TCPClient({
+        Logging: true,
+      });
+
+      // Serialize to struct Chaser
+      var data = [];
+      data[0] = (this.Interval) & 0xff;
+      data[1] = (this.Interval >> 8) & 0xff;
+      data[2] = this.Count;
+      data[3] = 0; // Index is unused client side
+      for (var i = 0; i < SCENES_PER_CHASER; i++) {
+        for (var j = 0; j < CHANNELS_PER_SCENE; j++) {
+          data[4 + (i * CHANNELS_PER_SCENE) + j] = this.Scenes[i].Channels[j].Value;
+        }
+      }
+
+      client.send("WRITE", data)
+      .then(function(response) {
+        q.resolve(_self);
+
+      }).catch(function(error) {
+        q.reject(error);
+
+      });
+    };
+
+    this.initialize();
+  };
+
+  return (Chaser);
+})
+
 .factory("Scene", function($window, Channel, TCPClient) {
   var CHANNELS_PER_SCENE = 6;
   var DEFAULTS = {Name: "", Mirror: true, Channels: []};

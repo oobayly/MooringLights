@@ -133,7 +133,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
 })
 
 // MainCtrl: The controller used for displaying all the scenes
-.controller("MainCtrl", function($scope, $rootScope, $ionicModal, $ionicPopover, $ionicPopup, $cordovaToast, LightsService, Scene, Channel, TCPClient) {
+.controller("MainCtrl", function($scope, $rootScope, $ionicModal, $ionicPopover, $ionicPopup, $cordovaToast, Channel, Chaser, Scene, LightsService, TCPClient) {
   // These are the scenes that are currently available
   $scope.Scenes = [];
 
