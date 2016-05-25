@@ -98,7 +98,7 @@ bool WiFi::read(Config * const config, const PWM * const pwm, Chaser * const cha
 
       uint8_t message[4 + sizeof(Chaser)];
       memcpy(message, F("+OK "), 4);
-      memcpy(message + 4, (uint8_t *)&chaser, PWM_COUNT);
+      memcpy(message + 4, (uint8_t *)&chaser, sizeof(Chaser));
       
       writeResponse(fromWiFi, mux_id, message, 4 + sizeof(Chaser));
     } else {
