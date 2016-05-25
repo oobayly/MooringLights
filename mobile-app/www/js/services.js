@@ -76,7 +76,7 @@ angular.module("MooringLights.services", [])
 
       // Deserialize from struct Chaser
       this.Interval = (data[0]) + (data[1] << 8);
-      this.Count = Math.max(data[2], SCENES_PER_CHASER); // In case un-initialised data is returned
+      this.Count = Math.min(data[2], SCENES_PER_CHASER); // In case un-initialised data is returned
       for (var i = 0; i < SCENES_PER_CHASER; i++) {
         for (var j = 0; j < CHANNELS_PER_SCENE; j++) {
           this.Scenes[i].Channels[j].Value = data[4 + (i * CHANNELS_PER_SCENE) + j];
