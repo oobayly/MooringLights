@@ -1,3 +1,7 @@
+/* globals angular: false */
+/* globals console: false */
+/* globals Uint8Array: false */
+
 angular.module("MooringLights.services", [])
 
 .factory("Channel", function() {
@@ -25,14 +29,14 @@ angular.module("MooringLights.services", [])
         delta = -ROUND_VALUE;
 
       this.increment(delta);
-    }
+    };
 
     this.incrementUp = function(delta) {
       if (delta === undefined || delta === null)
         delta = ROUND_VALUE;
 
       this.increment(delta);
-    }
+    };
   };
 
   return (Channel);
@@ -177,7 +181,7 @@ angular.module("MooringLights.services", [])
 
       var data = [];
       for (var i = 0; i < this.Channels.length; i++) {
-        if (this.Channels[i].Value == 0) {
+        if (this.Channels[i].Value === 0) {
           data[i] = 0;
         } else {
           // Compress non-zero values to be between 1 and intensity
@@ -233,7 +237,7 @@ angular.module("MooringLights.services", [])
       return found;
 
     throw "No scene could be found with the ID '" + id + "'";
-  }
+  };
 
   // Gets all the scenes from local storage
   this.getScenes = function() {
@@ -288,7 +292,7 @@ angular.module("MooringLights.services", [])
 .factory("TCPClient", function($window, $q, $timeout) {
   var DEFAULTS = {
     Logging: false,
-  }
+  };
 
   var TCPClient = function(defaults) {
     this.defaults = angular.extend(DEFAULTS, defaults);
@@ -316,13 +320,13 @@ angular.module("MooringLights.services", [])
       var self = this;
       var q = $q.defer();
 
-      var settings = JSON.parse(localStorage.getItem("settings") || "{}");
+      var settings = JSON.parse($window.localStorage.getItem("settings") || "{}");
       if (!settings.Host || ! settings.Port) {
         q.reject({
           message: "No network settings have been provided"
         });
 
-      } else if (!window.Socket) {
+      } else if (!$window.Socket) {
         // If the socket plugin isn't available
         q.reject({
           message: "Socket plugin is not available"
@@ -407,7 +411,7 @@ angular.module("MooringLights.services", [])
               error: error
             });
 
-          })
+          });
         }, settings.Timeout || 10000);
 
         socket.open(settings.Host, settings.Port, function() {
@@ -429,7 +433,7 @@ angular.module("MooringLights.services", [])
       }
 
       return q.promise;
-    }
+    };
 
   };
 

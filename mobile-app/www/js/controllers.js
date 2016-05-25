@@ -1,7 +1,10 @@
+/* globals angular: false */
+/* globals console: false */
+
 angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.services"])
 
 // EditSceneCtrl: The controller for adding/editing scenes
-.controller("EditSceneCtrl", function($scope, $rootScope, $ionicHistory, $ionicPopup, $stateParams, LightsService, Channel, Scene) {
+.controller("EditSceneCtrl", function($scope, $rootScope, $window, $ionicHistory, $ionicPopup, $stateParams, $cordovaToast, Channel, LightsService, Scene) {
   $scope.Scene = {};
 
   $scope.IsNew = false;
@@ -17,24 +20,24 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
     }
 
     $scope.setLevels();
-  }
+  };
 
   // Raised when the intensity slider value is changed
   $scope.onIntensityChanged = function(item) {
-    localStorage.setItem("intensity", item.Value);
+    $window.localStorage.setItem("intensity", item.Value);
 
     $scope.setLevels();
 
     // Also need to broadcast that the intensity has changed
     $rootScope.$broadcast("intensity-changed", item);
-  }
+  };
 
   // Raised when the darker button is pressed
   $scope.onDownClicked = function(index, item) {
     item.incrementDown();
 
     if (item.IsIntensity) {
-      $scope.onIntensityChanged(item)
+      $scope.onIntensityChanged(item);
     } else {
       $scope.onChannelChanged(index, item);
     }
@@ -54,7 +57,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
     item.incrementUp();
 
     if (item.IsIntensity) {
-      $scope.onIntensityChanged(item)
+      $scope.onIntensityChanged(item);
     } else {
       $scope.onChannelChanged(index, item);
     }
@@ -91,11 +94,11 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
 
   $scope.setLevels = function() {
     if ($scope.setLevelTimeout) {
-      window.clearTimeout($scope.setLevelTimeout);
+      $window.clearTimeout($scope.setLevelTimeout);
       $scope.setLevelTimeout = null;
     }
 
-    $scope.setLevelTimeout = window.setTimeout(function () {
+    $scope.setLevelTimeout = $window.setTimeout(function () {
       $scope.setLevelTimout = null;
 
       $scope.Scene.writeLevels($scope.Intensity.Value,
@@ -126,14 +129,14 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
     $scope.onMirrorChanged();
 
     // Fetch the previous settings from localstorage
-    $scope.Intensity.Value = parseInt(localStorage.getItem("intensity") || "0");
+    $scope.Intensity.Value = parseInt($window.localStorage.getItem("intensity") || "0");
   };
 
   $scope.initialize();
 })
 
 // MainCtrl: The controller used for displaying all the scenes
-.controller("MainCtrl", function($scope, $rootScope, $ionicModal, $ionicPopover, $ionicPopup, $cordovaToast, Channel, Chaser, Scene, LightsService, TCPClient) {
+.controller("MainCtrl", function($scope, $rootScope, $window, $ionicModal, $ionicPopover, $ionicPopup, $cordovaToast, Channel, Chaser, Scene, LightsService, TCPClient) {
   // These are the scenes that are currently available
   $scope.Scenes = [];
 
@@ -188,7 +191,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
       console.log(JSON.stringify(error));
 
       $cordovaToast.showLongBottom(error.message);
-    })
+    });
   };
 
   $scope.onSceneClick = function(item) {
@@ -200,19 +203,19 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
   $scope.onIntensityChanged = function(item) {
     $scope.setLevels();
 
-    localStorage.setItem("intensity", item.Value);
-  }
+    $window.localStorage.setItem("intensity", item.Value);
+  };
 
   // Raised when the darker button is pressed
   $scope.onDownClicked = function(item) {
     item.incrementDown();
-    $scope.onIntensityChanged(item)
+    $scope.onIntensityChanged(item);
   };
 
   // Raised when the brighter button is pressed
   $scope.onUpClicked = function(item) {
     item.incrementUp();
-    $scope.onIntensityChanged(item)
+    $scope.onIntensityChanged(item);
   };
 
   $scope.doSceneDelete = function(item) {
@@ -261,11 +264,11 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
 
   $scope.setLevels = function() {
     if ($scope.setLevelTimeout) {
-      window.clearTimeout($scope.setLevelTimeout);
+      $window.clearTimeout($scope.setLevelTimeout);
       $scope.setLevelTimeout = null;
     }
 
-    $scope.setLevelTimeout = window.setTimeout(function () {
+    $scope.setLevelTimeout = $window.setTimeout(function () {
       $scope.setLevelTimout = null;
 
       var scene;
@@ -460,7 +463,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
         console.log(JSON.stringify(error));
 
         $cordovaToast.showLongBottom(error.message);
-      })
+      });
     }
   };
 
@@ -476,7 +479,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
       for (var i = 4; i < response.data.length; i++) {
         message += String.fromCharCode(response.data[i]);
       }
-      message += "°"
+      message += "°";
       $cordovaToast.showLongBottom(message);
 
     }).catch(function(error) {
@@ -484,35 +487,35 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
       console.log(JSON.stringify(error));
 
       $cordovaToast.showLongBottom(error.message);
-    })
-  }
+    });
+  };
 
   $scope.initialize = function() {
     // Fetch any saved scenes
     $scope.reloadScenes();
 
     // Fetch the previous settings from localstorage
-    $scope.Intensity.Value = parseInt(localStorage.getItem("intensity") || "0");
+    $scope.Intensity.Value = parseInt($window.localStorage.getItem("intensity") || "0");
 
     // The controller's TCP settings
-    angular.extend($scope.Settings, JSON.parse(localStorage.getItem("settings") || "{}"));
+    angular.extend($scope.Settings, JSON.parse($window.localStorage.getItem("settings") || "{}"));
 
     // If no host or port is set then prompt the user for the controller location
     if (!$scope.Settings.Host || !$scope.Settings.Port)
-      window.setTimeout($scope.showSettings, 250);
+      $window.setTimeout($scope.showSettings, 250);
   };
 
   $scope.initialize();
 })
 
 // NetworkSettingsCtrl: The controller used for modifying the network settings
-.controller("NetworkSettingsCtrl", function($scope) {
+.controller("NetworkSettingsCtrl", function($scope, $window) {
   $scope.closeSettings = function() {
     $scope.settingsModal.hide();
   };
 
   $scope.doSave = function() {
-    localStorage.setItem("settings", JSON.stringify($scope.Settings));
+    $window.localStorage.setItem("settings", JSON.stringify($scope.Settings));
     $scope.closeSettings();
   };
 })

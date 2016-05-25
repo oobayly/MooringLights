@@ -1,12 +1,16 @@
+/* globals angular: false */
+/* globals console: false */
+/* globals window: false */
+
 angular.module('MooringLights', ["ionic", "MooringLights.controllers"])
 
 .run(function($ionicPlatform) {
   $ionicPlatform.ready(function() {
     if(window.cordova && window.cordova.plugins.Keyboard) {
-      cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
+      window.cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
     }
     if(window.StatusBar) {
-      StatusBar.styleDefault();
+      window.StatusBar.styleDefault();
     }
   });
 })
