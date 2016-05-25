@@ -16,19 +16,19 @@ angular.module('MooringLights', ["ionic", "MooringLights.controllers"])
 
   .state('app', {
     url: "/app",
-    controller: "SceneCtrl",
+    controller: "MainCtrl",
     templateUrl: "templates/scenes.html",
   })
 
-  .state('add', {
-    url: "/add/",
-    controller: 'EditCtrl',
+  .state('add-scene', {
+    url: "/scene/add/",
+    controller: 'EditSceneCtrl',
     templateUrl: "templates/edit.html",
   })
 
-  .state('edit', {
-    url: "/edit/:id",
-    controller: 'EditCtrl',
+  .state('edit-scene', {
+    url: "/scene/edit/:id",
+    controller: 'EditSceneCtrl',
     templateUrl: "templates/edit.html",
   })
 

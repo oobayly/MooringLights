@@ -1,14 +1,11 @@
 <ion-view title="Leo's Mooring Lights">
   <ion-nav-buttons side="right">
-    <a class="button button-clear icon ion-plus-round" href="#/add/"></a>
     <a class="button button-clear icon ion-navicon-round" ng-click="menuPopover.show($event)"></a>
   </ion-nav-buttons>
 
-  <ion-content has-header="true">
-
-    <ion-item class="item-divider">Master Brightness</ion-item>
-
-    <ion-list class="fade-in-not-out">
+  <ion-content class="has-header">
+    <div class="card list">
+      <ion-item class="item-divider">Master Brightness</ion-item>
       <ion-item class="range range-positive">
         <i class="icon ion-ios-sunny-outline" ng-click="onDownClicked(Intensity)"></i>
         <input type="range" min="0" max="255"
@@ -18,21 +15,56 @@
         <i class="icon ion-ios-sunny" ng-click="onUpClicked(Intensity)"></i>
       </ion-item>
 
-      <ion-item class="item-divider">Lighting Schemes</ion-item>
+      <ion-item class="item-divider item-button-right">
+        <ion-label class="input-label">Lighting Schemes</ion-label>
+        <div class="buttons">
+          <a class="button icon ion-plus-round" href="#/scene/add/"></a>
+        </div>
+      </ion-item>
 
       <ion-item class="item-button-right" ng-repeat="scene in Scenes | orderBy:'Name' track by scene.ID" ng-click="onSceneClick(scene)">
         <div class="item-content">
           <i class="icon ion-ios-sunny" style="opacity: {{channel.Value / 255}}" ng-repeat="channel in scene.Channels"></i>
           {{scene.Name}}
           <div class="buttons">
-            <a class="button button-positive icon ion-edit" href="#/edit/{{scene.ID}}" ng-click="$event.stopPropagation();"></a>
-            <a class="button button-positive icon ion-trash-a" ng-click="doDelete(scene);$event.stopPropagation();"></a>
+            <a class="button button-positive icon ion-edit" href="#/scene/edit/{{scene.ID}}" ng-click="$event.stopPropagation();"></a>
+            <a class="button button-positive icon ion-trash-a" ng-click="doSceneDelete(scene);$event.stopPropagation();"></a>
           </div>
         </div>
       </ion-item>
+    </div>
 
-    </ion-list>
+    <div class="card list">
+      <ion-item class="item-divider">Key Fobb Buttons</ion-item>
+      <ion-item class="item-button-right" ng-click="onPresetClick('A')">
+        Button A
+        <div class="buttons">
+          <a class="button button-positive icon ion-edit" href="#/chaser/edit/A" ng-click="$event.stopPropagation();"></a>
+        </div>
+      </ion-item>
+      <ion-item class="item-button-right" ng-click="onPresetClick('B')">
+        Button B
+        <div class="buttons">
+          <a class="button button-positive icon ion-edit" href="#/chaser/edit/B" ng-click="$event.stopPropagation();"></a>
+        </div>
+      </ion-item>
+      <ion-item class="item-button-right" ng-click="onPresetClick('C')">
+        Button C
+        <div class="buttons">
+          <a class="button button-positive icon ion-edit" href="#/chaser/edit/C" ng-click="$event.stopPropagation();"></a>
+        </div>
+      </ion-item>
+    </div>
 
+    <div class="card list">
+      <ion-item class="item-divider item-button-right">
+        <ion-label class="input-label">Custom Chasers</ion-label>
+        <div class="buttons">
+          <a class="button icon ion-plus" href="#/chaser/add" ng-click="$event.stopPropagation();"></a>
+        </div>
+      </ion-item>
+
+    </div>
   </ion-content>
 
   <script id="menu-popover.html" type="text/ng-template">

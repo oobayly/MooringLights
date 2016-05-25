@@ -1,7 +1,7 @@
 angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.services"])
 
-// EditCtrl: The controller for adding/editing scenes
-.controller("EditCtrl", function($scope, $rootScope, $ionicHistory, $ionicPopup, $stateParams, LightsService, Channel, Scene) {
+// EditSceneCtrl: The controller for adding/editing scenes
+.controller("EditSceneCtrl", function($scope, $rootScope, $ionicHistory, $ionicPopup, $stateParams, LightsService, Channel, Scene) {
   $scope.Scene = {};
 
   $scope.IsNew = false;
@@ -128,8 +128,8 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
   $scope.initialize();
 })
 
-// SceneCtrl: The controller used for displaying all the scenes
-.controller("SceneCtrl", function($scope, $rootScope, $ionicModal, $ionicPopover, $ionicPopup, $cordovaToast, LightsService, Scene, Channel, TCPClient) {
+// MainCtrl: The controller used for displaying all the scenes
+.controller("MainCtrl", function($scope, $rootScope, $ionicModal, $ionicPopover, $ionicPopup, $cordovaToast, LightsService, Scene, Channel, TCPClient) {
   // These are the scenes that are currently available
   $scope.Scenes = [];
 
@@ -171,6 +171,22 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
     $scope.reloadScenes();
   });
 
+  $scope.onPresetClick = function(button) {
+    var client = new TCPClient({
+      Logging: true
+    });
+    client.send("LOAD", [0x30 + button.charCodeAt() - 65])
+    .then(function(response) {
+      $cordovaToast.showLongBottom("Preset loaded");
+
+    }).catch(function(error) {
+      console.log("Couldn't load preset:");
+      console.log(JSON.stringify(error));
+
+      $cordovaToast.showLongBottom(error.message);
+    })
+  };
+
   $scope.onSceneClick = function(item) {
     $scope.SelectedSceneID = item.ID;
     $scope.setLevels();
@@ -195,7 +211,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
     $scope.onIntensityChanged(item)
   };
 
-  $scope.doDelete = function(item) {
+  $scope.doSceneDelete = function(item) {
     var popup = $ionicPopup.confirm({
       title: "Delete Lighting Scheme",
       template: "Are you sure you want to delete the Light Scheme '" + item.Name + "'?",
@@ -485,8 +501,8 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
   $scope.initialize();
 })
 
-// Settings Control
-.controller("SettingsCtrl", function($scope) {
+// NetworkSettingsCtrl: The controller used for modifying the network settings
+.controller("NetworkSettingsCtrl", function($scope) {
   $scope.closeSettings = function() {
     $scope.settingsModal.hide();
   };
