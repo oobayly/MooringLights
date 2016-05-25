@@ -7,7 +7,7 @@
   </ion-nav-buttons>
 
   <ion-content has-header="true">
-    <ion-list>
+    <div class="card list">
       <ion-item class="item-divider">Master Brightness</ion-item>
 
       <ion-item class="range range-positive">
@@ -53,10 +53,14 @@
         <i class="icon ion-ios-sunny" ng-click="onUpClicked($index, channel)"></i>
       </ion-item>
 
-      <label class="item">
-        <button class="button button-block button-positive" ng-click="doSave()">Save</button>
-      </label>
+    </div>
 
-    </ion-list>
   </ion-content>
+
+  <ion-footer-bar>
+    <div class="button-bar">
+      <button class="button button-weight-2 icon ion-close-round" ng-click="doBack()">Cancel</button>
+      <button class="button button-weight-3 button-positive icon ion-checkmark-round" ng-click="doSave()">Save</button>
+    </div>
+  </ion-footer-bar>
 </ion-view>

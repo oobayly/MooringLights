@@ -60,6 +60,10 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
     }
   };
 
+  $scope.doBack = function() {
+    $ionicHistory.goBack();
+  };
+
   $scope.doSave = function() {
     if (!$scope.Scene.Name) {
       $ionicPopup.alert({
