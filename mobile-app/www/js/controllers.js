@@ -142,7 +142,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
   $scope.setLevelTimeout = null;
 
   // Create the settings modal that we will use later
-  $ionicModal.fromTemplateUrl('templates/settings.html', {
+  $ionicModal.fromTemplateUrl('templates/network-settings.html', {
     scope: $scope,
     animation: "slide-in-up",
     focusFirstInput: true
