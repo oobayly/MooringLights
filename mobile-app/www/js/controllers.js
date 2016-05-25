@@ -16,9 +16,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
   };
 
   $scope.getScenes = function() {
-    var resp =  $scope.Chaser.Scenes.slice(0, $scope.Chaser.Count);
-    console.log(resp);
-    return resp;
+    return $scope.Chaser.Scenes.slice(0, $scope.Chaser.Count);
   };
 
   $scope.initialize = function() {
@@ -106,7 +104,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
     }
 
     LightsService.saveScene($scope.Scene);
-    $rootScope.$broadcast("scenes-changed");
+    $rootScope.$broadcast("scenes-changed", $scope.Scene);
     $ionicHistory.goBack();
   };
 
@@ -195,7 +193,8 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
   });
 
   $rootScope.$on("scenes-changed", function(event, data) {
-    $scope.reloadScenes();
+    $scope.SelectedSceneID = data.ID;
+    $scope.reloadScenes(true);
   });
 
   $scope.onPresetClick = function(button) {
@@ -204,6 +203,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
     });
     client.send("LOAD", [0x30 + button.charCodeAt() - 65])
     .then(function(response) {
+      $scope.SelectedSceneID = null;
       Toast.showLongBottom("Preset loaded");
 
     }).catch(function(error) {
@@ -241,13 +241,17 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
 
         LightsService.deleteScene(item.ID);
 
-        $scope.reloadScenes();
+        // TODO: Implement unsetting the lights
+        $scope.reloadScenes(true);
       }
     });
   };
 
-  $scope.reloadScenes = function() {
+  $scope.reloadScenes = function(setLevels) {
     $scope.Scenes = LightsService.getScenes();
+
+    if (setLevels)
+      $scope.setLevels();
   };
 
   $scope.setFadeInterval = function(interval) {
@@ -280,26 +284,23 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
       $scope.setLevelTimout = null;
 
       var scene;
-      if ($scope.SelectedSceneID) {
+      if ($scope.SelectedSceneID != null) {
         scene = LightsService.getScene($scope.SelectedSceneID);
-      } else {
-        // If none is selected, then use an empty scene to switch the lights off
-        scene = new Scene();
+
+        scene.writeLevels($scope.Intensity.Value)
+        .then(function(response) {
+          console.log("Set levels successfuly:");
+          console.log(JSON.stringify(response));
+          Toast.showLongBottom("Lights have been set");
+
+        }).catch(function(error) {
+          console.log("Couldn't write levels:");
+          console.log(JSON.stringify(error));
+
+          $scope.SelectedSceneID = null;
+          Toast.showLongBottom(error.message);
+        });
       }
-
-      scene.writeLevels($scope.Intensity.Value)
-      .then(function(response) {
-        console.log("Set levels successfuly:");
-        console.log(JSON.stringify(response));
-        Toast.showLongBottom("Lights have been set");
-
-      }).catch(function(error) {
-        console.log("Couldn't write levels:");
-        console.log(JSON.stringify(error));
-
-        $scope.SelectedSceneID = null;
-        Toast.showLongBottom(error.message);
-      });
 
     }, 100);
   };
