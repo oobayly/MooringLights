@@ -4,7 +4,7 @@
 angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.services"])
 
 // EditChaserCtrl: The controller used for adding/editing chasers
-.controller("EditChaserCtrl", function($scope, $rootScope, $window, $ionicHistory, $ionicPopup, $stateParams, $cordovaToast, Channel, Chaser, LightsService, Scene) {
+.controller("EditChaserCtrl", function($scope, $rootScope, $window, $ionicHistory, $ionicPopup, $stateParams, Chaser, LightsService, Scene, Toast) {
   $scope.Chaser = {};
 
   $scope.IsController = false; // Flag indicating whether the Chaser is one stored on the controller
@@ -33,7 +33,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
           console.log("Couldn't read chaser:");
           console.log(JSON.stringify(error));
 
-          $cordovaToast.showLongBottom(error.message);
+          Toast.showLongBottom(error.message);
           $scope.doBack();
 
         });
@@ -53,62 +53,42 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
 })
 
 // EditSceneCtrl: The controller for adding/editing scenes
-.controller("EditSceneCtrl", function($scope, $rootScope, $window, $ionicHistory, $ionicPopup, $stateParams, $cordovaToast, Channel, LightsService, Scene) {
+.controller("EditSceneCtrl", function($scope, $rootScope, $timeout, $window, $ionicHistory, $ionicPopup, $stateParams, LightsService, Scene, Toast) {
   $scope.Scene = {};
 
   $scope.IsNew = false;
 
-  $scope.Intensity = new Channel({IsIntensity: true});
+  $scope.Intensity = {Value: 0}; // Needs to be wrapped in an object
 
   $scope.setLevelTimeout = null;
 
   // Raised when the intensity slider value is changed
-  $scope.onChannelChanged = function(index, item) {
-    if ($scope.Scene.Mirror) {
-      $scope.Scene.Channels[$scope.Scene.Channels.length - 1 - index].Value = $scope.Scene.Channels[index].Value;
-    }
+  $scope.onChannelChanged = function(index, value) {
+    $timeout(function() {
+      if ($scope.Scene.Mirror) {
+        $scope.Scene.Channels[$scope.Scene.Channels.length - 1 - index] = $scope.Scene.Channels[index];
+      }
 
-    $scope.setLevels();
+      $scope.setLevels();
+    });
   };
 
   // Raised when the intensity slider value is changed
-  $scope.onIntensityChanged = function(item) {
-    $window.localStorage.setItem("intensity", item.Value);
-
-    $scope.setLevels();
+  $scope.onIntensityChanged = function(value) {
+    $window.localStorage.setItem("intensity", value);
 
     // Also need to broadcast that the intensity has changed
-    $rootScope.$broadcast("intensity-changed", item);
-  };
+    $rootScope.$broadcast("intensity-changed", value);
 
-  // Raised when the darker button is pressed
-  $scope.onDownClicked = function(index, item) {
-    item.incrementDown();
-
-    if (item.IsIntensity) {
-      $scope.onIntensityChanged(item);
-    } else {
-      $scope.onChannelChanged(index, item);
-    }
+    $scope.setLevels();
   };
 
   $scope.onMirrorChanged = function() {
     if ($scope.Scene.Mirror) {
       // Make sure the values are mirrored
       for (var i = 0; i < $scope.Scene.Channels.length / 2; i++) {
-        $scope.Scene.Channels[$scope.Scene.Channels.length - 1 - i].Value = $scope.Scene.Channels[i].Value;
+        $scope.Scene.Channels[$scope.Scene.Channels.length - 1 - i] = $scope.Scene.Channels[i];
       }
-    }
-  };
-
-  // Raised when the brighter button is pressed
-  $scope.onUpClicked = function(index, item) {
-    item.incrementUp();
-
-    if (item.IsIntensity) {
-      $scope.onIntensityChanged(item);
-    } else {
-      $scope.onChannelChanged(index, item);
     }
   };
 
@@ -130,17 +110,6 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
     $ionicHistory.goBack();
   };
 
-  $scope.getChannels = function() {
-    if (!$scope.Scene)
-      return null;
-
-    if ($scope.Scene.Mirror) {
-      return $scope.Scene.Channels.slice(0, $scope.Scene.Channels.length / 2);
-    } else {
-      return $scope.Scene.Channels;
-    }
-  };
-
   $scope.setLevels = function() {
     if ($scope.setLevelTimeout) {
       $window.clearTimeout($scope.setLevelTimeout);
@@ -150,24 +119,26 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
     $scope.setLevelTimeout = $window.setTimeout(function () {
       $scope.setLevelTimout = null;
 
-      $scope.Scene.writeLevels($scope.Intensity.Value,
-        function(hasError) {
-          if (hasError) {
-            $cordovaToast.showLongBottom("An error occured while setting the lights");
-          } else {
-            $cordovaToast.showLongBottom("Lights have been set");
-          }
-        },
-        function(errorMessage, originalError) {
-          console.log("Couldn't writeLevels: " + originalError || errorMessage);
-          $cordovaToast.showLongBottom(errorMessage);
-          $scope.SelectedSceneID = null;
-        }
-      );
+      $scope.Scene.writeLevels($scope.Intensity.Value)
+      .then(function(response) {
+        console.log("Set levels successfuly:");
+        console.log(JSON.stringify(response));
+        Toast.showLongBottom("Lights have been set");
+
+      }).catch(function(error) {
+        console.log("Couldn't write levels:");
+        console.log(JSON.stringify(error));
+
+        $scope.SelectedSceneID = null;
+        Toast.showLongBottom(error.message);
+      });
     }, 100);
   };
 
   $scope.initialize = function() {
+    // Fetch the previous settings from localstorage
+    $scope.Intensity.Value = parseInt($window.localStorage.getItem("intensity") || "0");
+
     if ($stateParams.id) {
       $scope.Scene = LightsService.getScene($stateParams.id);
     } else {
@@ -176,22 +147,19 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
     }
 
     $scope.onMirrorChanged();
-
-    // Fetch the previous settings from localstorage
-    $scope.Intensity.Value = parseInt($window.localStorage.getItem("intensity") || "0");
   };
 
   $scope.initialize();
 })
 
 // MainCtrl: The controller used for displaying all the scenes
-.controller("MainCtrl", function($scope, $rootScope, $window, $ionicModal, $ionicPopover, $ionicPopup, $cordovaToast, Channel, Chaser, Scene, LightsService, TCPClient) {
+.controller("MainCtrl", function($scope, $rootScope, $timeout, $window, $ionicModal, $ionicPopover, $ionicPopup, Chaser, Scene, LightsService, TCPClient, Toast) {
   // These are the scenes that are currently available
   $scope.Scenes = [];
 
   $scope.Settings = {Host: "", Port: 8888, Timeout: 10000};
 
-  $scope.Intensity = new Channel();
+  $scope.Intensity = {Value: 0}; // Needs to be wrapped in an object
 
   $scope.SelectedSceneID = null;
 
@@ -220,7 +188,10 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
 
   $rootScope.$on("intensity-changed", function(event, data) {
     // Reload the intensity
-    $scope.Intensity.Value = data.Value;
+    $timeout(function() {
+      $scope.Intensity.Value = data;
+
+    });
   });
 
   $rootScope.$on("scenes-changed", function(event, data) {
@@ -233,13 +204,13 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
     });
     client.send("LOAD", [0x30 + button.charCodeAt() - 65])
     .then(function(response) {
-      $cordovaToast.showLongBottom("Preset loaded");
+      Toast.showLongBottom("Preset loaded");
 
     }).catch(function(error) {
       console.log("Couldn't load preset:");
       console.log(JSON.stringify(error));
 
-      $cordovaToast.showLongBottom(error.message);
+      Toast.showLongBottom(error.message);
     });
   };
 
@@ -249,22 +220,10 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
   };
 
   // Raised when the intensity slider value is changed
-  $scope.onIntensityChanged = function(item) {
+  $scope.onIntensityChanged = function(value) {
+    $window.localStorage.setItem("intensity", value);
+
     $scope.setLevels();
-
-    $window.localStorage.setItem("intensity", item.Value);
-  };
-
-  // Raised when the darker button is pressed
-  $scope.onDownClicked = function(item) {
-    item.incrementDown();
-    $scope.onIntensityChanged(item);
-  };
-
-  // Raised when the brighter button is pressed
-  $scope.onUpClicked = function(item) {
-    item.incrementUp();
-    $scope.onIntensityChanged(item);
   };
 
   $scope.doSceneDelete = function(item) {
@@ -307,7 +266,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
       console.log("Couldn't set fade interval:");
       console.log(JSON.stringify(error));
 
-      $cordovaToast.showLongBottom(error.message);
+      Toast.showLongBottom(error.message);
     });
   };
 
@@ -332,14 +291,14 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
       .then(function(response) {
         console.log("Set levels successfuly:");
         console.log(JSON.stringify(response));
-        $cordovaToast.showLongBottom("Lights have been set");
+        Toast.showLongBottom("Lights have been set");
 
       }).catch(function(error) {
         console.log("Couldn't write levels:");
         console.log(JSON.stringify(error));
 
         $scope.SelectedSceneID = null;
-        $cordovaToast.showLongBottom(error.message);
+        Toast.showLongBottom(error.message);
       });
 
     }, 100);
@@ -363,7 +322,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
       console.log("Couldn't set sleep timeout:");
       console.log(JSON.stringify(error));
 
-      $cordovaToast.showLongBottom(error.message);
+      Toast.showLongBottom(error.message);
     });
   };
 
@@ -415,7 +374,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
         console.log("Couldn't get fade interval:");
         console.log(JSON.stringify(error));
 
-        $cordovaToast.showLongBottom(error.message);
+        Toast.showLongBottom(error.message);
       });
     }
   };
@@ -475,7 +434,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
         console.log("Couldn't get sleep interval:");
         console.log(JSON.stringify(error));
 
-        $cordovaToast.showLongBottom(error.message);
+        Toast.showLongBottom(error.message);
       });
     }
   };
@@ -511,7 +470,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
         console.log("Couldn't get status:");
         console.log(JSON.stringify(error));
 
-        $cordovaToast.showLongBottom(error.message);
+        Toast.showLongBottom(error.message);
       });
     }
   };
@@ -529,13 +488,13 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
         message += String.fromCharCode(response.data[i]);
       }
       message += "°";
-      $cordovaToast.showLongBottom(message);
+      Toast.showLongBottom(message);
 
     }).catch(function(error) {
       console.log("Couldn't get temperature:");
       console.log(JSON.stringify(error));
 
-      $cordovaToast.showLongBottom(error.message);
+      Toast.showLongBottom(error.message);
     });
   };
 

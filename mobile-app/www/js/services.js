@@ -4,45 +4,7 @@
 
 angular.module("MooringLights.services", [])
 
-.factory("Channel", function() {
-  var ROUND_VALUE = 32;
-  var DEFAULTS = {Value: 0};
-
-  var Channel = function(defaults) {
-    angular.extend(this, angular.copy(DEFAULTS), angular.copy(defaults));
-
-    this.increment = function(delta) {
-      var newValue = parseInt(this.Value) + parseInt(delta);
-      newValue = ROUND_VALUE * Math.round(newValue / ROUND_VALUE);
-
-      if (newValue < 0) {
-        newValue = 0;
-      } else if (newValue > 255) {
-        newValue = 255;
-      }
-
-      this.Value = newValue;
-    };
-
-    this.incrementDown = function(delta) {
-      if (delta === undefined || delta === null)
-        delta = -ROUND_VALUE;
-
-      this.increment(delta);
-    };
-
-    this.incrementUp = function(delta) {
-      if (delta === undefined || delta === null)
-        delta = ROUND_VALUE;
-
-      this.increment(delta);
-    };
-  };
-
-  return (Channel);
-})
-
-.factory("Chaser", function($q, $window, Channel, Scene, TCPClient) {
+.factory("Chaser", function($q, $window, Scene, TCPClient) {
   var CHANNELS_PER_SCENE = 6;
   var SCENES_PER_CHASER = 6;
   var DEFAULTS = {Name: ""};
@@ -79,7 +41,7 @@ angular.module("MooringLights.services", [])
       this.Count = Math.min(data[2], SCENES_PER_CHASER); // In case un-initialised data is returned
       for (var i = 0; i < SCENES_PER_CHASER; i++) {
         for (var j = 0; j < CHANNELS_PER_SCENE; j++) {
-          this.Scenes[i].Channels[j].Value = data[4 + (i * CHANNELS_PER_SCENE) + j];
+          this.Scenes[i].Channels[j] = data[4 + (i * CHANNELS_PER_SCENE) + j];
         }
       }
     };
@@ -130,7 +92,7 @@ angular.module("MooringLights.services", [])
       data[3] = 0; // Index is unused client side
       for (var i = 0; i < SCENES_PER_CHASER; i++) {
         for (var j = 0; j < CHANNELS_PER_SCENE; j++) {
-          data[4 + (i * CHANNELS_PER_SCENE) + j] = this.Scenes[i].Channels[j].Value;
+          data[4 + (i * CHANNELS_PER_SCENE) + j] = this.Scenes[i].Channels[j];
         }
       }
 
@@ -150,7 +112,7 @@ angular.module("MooringLights.services", [])
   return (Chaser);
 })
 
-.factory("Scene", function($window, Channel, TCPClient) {
+.factory("Scene", function($window, TCPClient) {
   var CHANNELS_PER_SCENE = 6;
   var DEFAULTS = {Name: "", Mirror: true, Channels: []};
 
@@ -160,16 +122,12 @@ angular.module("MooringLights.services", [])
     this.initialize = function() {
       // Pre-populate with the requisite number of channels
       for (var i = 0; i < CHANNELS_PER_SCENE; i++) {
-        this.Channels[i] = new Channel();
+        this.Channels[i] = 0;
       }
 
       if (defaults && defaults.Channels) {
         for (var i = 0; i < CHANNELS_PER_SCENE; i++) {
-          if (typeof defaults.Channels[i] == "number") {
-            this.Channels[i].Value = defaults.Channels[i];
-          } else {
-            this.Channels[i].Value = defaults.Channels[i].Value;
-          }
+          this.Channels[i] = defaults.Channels[i];
         }
       }
     };
@@ -177,15 +135,15 @@ angular.module("MooringLights.services", [])
     // Writes the levels to the controller
     this.writeLevels = function(intensity) {
       // Default to 0
-      intensity = intensity || 0;
+      intensity = parseInt(intensity) || 0;
 
       var data = [];
       for (var i = 0; i < this.Channels.length; i++) {
-        if (this.Channels[i].Value === 0) {
+        if (this.Channels[i] == 0) {
           data[i] = 0;
         } else {
           // Compress non-zero values to be between 1 and intensity
-          data[i] = 1 + (this.Channels[i].Value - 1) * intensity / 255;
+          data[i] = 1 + (parseInt(this.Channels[i]) - 1) * intensity / 255;
         }
       }
 
@@ -438,6 +396,39 @@ angular.module("MooringLights.services", [])
   };
 
   return (TCPClient);
+})
+
+// Wrapper for toast so it doesn't break when serving it locally
+.service("Toast", function($cordovaToast) {
+  this.show = function(message, duration, position) {
+    try {
+      $cordovaToast.show(message, duration, position);
+    } catch (er) {}
+  };
+
+  this.showLongBottom = function(message) {
+    this.show(message, "long", "bottom");
+  };
+
+  this.showLongCenter = function(message) {
+    this.show(message, "long", "center");
+  };
+
+  this.showLongTop = function(message) {
+    this.show(message, "long", "top");
+  };
+
+  this.showShortBottom = function(message) {
+    this.show(message, "short", "bottom");
+  };
+
+  this.showShortCenter = function(message) {
+    this.show(message, "short", "center");
+  };
+
+  this.showShortTop = function(message) {
+    this.show(message, "short", "top");
+  };
 })
 
 ;

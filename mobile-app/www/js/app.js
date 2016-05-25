@@ -2,7 +2,7 @@
 /* globals console: false */
 /* globals window: false */
 
-angular.module('MooringLights', ["ionic", "MooringLights.controllers"])
+angular.module('MooringLights', ["ionic", "MooringLights.controllers", "MooringLights.directives"])
 
 .run(function($ionicPlatform) {
   $ionicPlatform.ready(function() {

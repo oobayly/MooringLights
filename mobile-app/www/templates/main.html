@@ -6,14 +6,8 @@
   <ion-content class="has-header">
     <div class="card list">
       <ion-item class="item-divider">Master Brightness</ion-item>
-      <ion-item class="range range-positive">
-        <i class="icon ion-ios-sunny-outline" ng-click="onDownClicked(Intensity)"></i>
-        <input type="range" min="0" max="255"
-               ng-model="Intensity.Value"
-               ng-value="Intensity.Value"
-               ng-change="onIntensityChanged(Intensity)">
-        <i class="icon ion-ios-sunny" ng-click="onUpClicked(Intensity)"></i>
-      </ion-item>
+
+      <light-slider value="Intensity.Value" on-change="onIntensityChanged(value)"></light-slider>
 
       <ion-item class="item-divider item-button-right">
         <ion-label class="input-label">Lighting Schemes</ion-label>
@@ -24,7 +18,7 @@
 
       <ion-item class="item-button-right" ng-repeat="scene in Scenes | orderBy:'Name' track by scene.ID" ng-click="onSceneClick(scene)">
         <div class="item-content">
-          <i class="icon ion-ios-sunny" style="opacity: {{channel.Value / 255}}" ng-repeat="channel in scene.Channels"></i>
+          <i class="icon ion-ios-sunny" style="opacity: {{channel / 255}}" ng-repeat="channel in scene.Channels track by $index"></i>
           {{scene.Name}}
           <div class="buttons">
             <a class="button button-positive icon ion-edit" href="#/scene/edit/{{scene.ID}}" ng-click="$event.stopPropagation();"></a>

@@ -1,0 +1,8 @@
+<ion-item class="range range-positive">
+  <i class="icon ion-ios-sunny-outline" ng-click="onDownClicked()"></i>
+  <input type="range" min="0" max="255"
+         ng-model="data.value"
+         ng-value="data.value"
+         ng-change="onSlide()">
+  <i class="icon ion-ios-sunny" ng-click="onUpClicked()"></i>
+</ion-item>
