@@ -3,6 +3,22 @@
 
 angular.module("MooringLights.directives", [])
 
+.directive("lights", function() {
+  return {
+    restrict: "E",
+    replace: false,
+    template: '<span><i class="icon ion-ios-sunny" style="opacity: {{channel / 255}}" ng-repeat="channel in value track by $index"></i></span>',
+
+    link: function($scope) {
+
+    },
+
+    scope: {
+      value: "="
+    }
+  };
+})
+
 .directive("lightSlider", function() {
   return {
     restrict: "E",

@@ -18,7 +18,7 @@
 
       <ion-item class="item-button-right" ng-repeat="scene in Scenes | orderBy:'Name' track by scene.ID" ng-click="onSceneClick(scene)">
         <div class="item-content">
-          <i class="icon ion-ios-sunny" style="opacity: {{channel / 255}}" ng-repeat="channel in scene.Channels track by $index"></i>
+          <lights value="scene.Channels"></lights>
           {{scene.Name}}
           <div class="buttons">
             <a class="button button-positive icon ion-edit" href="#/scene/edit/{{scene.ID}}" ng-click="$event.stopPropagation();"></a>
@@ -96,7 +96,7 @@
   <script id="status-popup.html" type="text/ng-template">
     <ion-list>
       <ion-item class="center huge">
-        <i class="icon ion-ios-sunny" style="opacity: {{value / 255}}" ng-repeat="value in status track by $index"></i>
+        <lights value="status"></lights>
       </ion-item>
     </ion-list>
   </script>
