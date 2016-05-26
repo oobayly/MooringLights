@@ -605,7 +605,7 @@ You are welcome to use this library for commercial purposes. For attribution, we
 </library>
 </libraries>
 <attributes>
-<attribute name="CREVISION" value="0.1"/>
+<attribute name="CREVISION" value="0.1.1"/>
 </attributes>
 <variantdefs>
 </variantdefs>
@@ -825,11 +825,11 @@ design rules under a new name.</description>
 <attribute name="NAME" x="24.0538" y="17.0688" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="VALUE" x="24.13" y="15.875" size="1.27" layer="27"/>
 </element>
-<element name="R3" library="SparkFun-Passives" package="AXIAL-0.4" value="220k" x="91.44" y="29.21" smashed="yes" rot="R90">
+<element name="R3" library="SparkFun-Passives" package="AXIAL-0.4" value="100k" x="91.44" y="29.21" smashed="yes" rot="R90">
 <attribute name="NAME" x="89.535" y="31.115" size="0.8128" layer="25" font="vector" ratio="15" rot="R90"/>
 <attribute name="VALUE" x="91.821" y="26.924" size="0.8128" layer="21" font="vector" ratio="15" rot="R90"/>
 </element>
-<element name="C3" library="SparkFun-Capacitors" package="CPOL-RADIAL-100UF-25V" value="100uF" x="96.52" y="34.29" rot="R180">
+<element name="C3" library="SparkFun-Capacitors" package="CPOL-RADIAL-100UF-25V" value="220uF" x="96.52" y="34.29" rot="R180">
 <attribute name="PROD_ID" value="CAP-08439" x="96.52" y="34.29" size="1.778" layer="27" rot="R180" display="off"/>
 </element>
 <element name="JPWM1" library="SparkFun-Connectors" package="SCREWTERMINAL-5MM-2" value="" x="16.51" y="63.5" rot="R180">
