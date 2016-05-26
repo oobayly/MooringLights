@@ -7,14 +7,10 @@ angular.module("MooringLights.services", [])
 .factory("Chaser", function($q, $window, Scene, TCPClient) {
   var CHANNELS_PER_SCENE = 6;
   var SCENES_PER_CHASER = 6;
-  var DEFAULTS = {Name: ""};
+  var DEFAULTS = {Name: "", Interval: 1000, Count: 1, Scenes: []};
 
   var Chaser = function(defaults) {
     angular.extend(this, angular.copy(DEFAULTS), angular.copy(defaults));
-
-    this.Interval = 1000;
-    this.Count = 1;
-    this.Scenes = [];
 
     this.initialize = function() {
       // Pre-populate the scenes
@@ -27,6 +23,9 @@ angular.module("MooringLights.services", [])
       if (defaults) {
         if (defaults.Count)
           this.Count = defaults.Count;
+
+        if (defaults.Interval)
+          this.Interval = defaults.Interval;
 
         if(defaults.Scenes && defaults.Scenes.length) {
           for (var i = 0; i < defaults.Scenes.length; i++) {
