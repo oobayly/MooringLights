@@ -154,6 +154,13 @@ bool WiFi::read(Config * const config, const PWM * const pwm, Chaser * const cha
     writeResponse(fromWiFi, mux_id, message);
     resp = false;
 
+  } else if ((len == 4 + sizeof(Chaser) + 2) && (strncmp((char *)this->buffer, "USE ", 4) == 0)) {
+    // USE c...\r\n
+    //   c: uint8_t array containing Chaser data
+    memcpy(chaser, buffer + 4, sizeof(Chaser));
+    writeResponse(fromWiFi, mux_id, F("+OK"));
+    resp = true;
+
   } else if ((len == 6 + 1 + sizeof(Chaser) + 2) && (strncmp((char *)this->buffer, "WRITE ", 6) == 0)) {
     // WRITE nc...\r\n
     //   n: ASCII char containing decimal number
