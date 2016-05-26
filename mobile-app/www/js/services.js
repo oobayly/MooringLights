@@ -20,9 +20,19 @@ angular.module("MooringLights.services", [])
       // Pre-populate the scenes
       for (var i = 0; i < SCENES_PER_CHASER; i++) {
         this.Scenes[i] = new Scene({
-          Name: "Scene " + (i + 1),
-          Mirror: false
+          Name: "Scene " + (i + 1)
         });
+      }
+
+      if (defaults) {
+        if (defaults.Count)
+          this.Count = defaults.Count;
+
+        if(defaults.Scenes && defaults.Scenes.length) {
+          for (var i = 0; i < defaults.Scenes.length; i++) {
+            this.Scenes[i] = new Scene(defaults.Scenes[i]);
+          }
+        }
       }
     };
 
@@ -40,6 +50,7 @@ angular.module("MooringLights.services", [])
       this.Interval = (data[0]) + (data[1] << 8);
       this.Count = Math.min(data[2], SCENES_PER_CHASER); // In case un-initialised data is returned
       for (var i = 0; i < SCENES_PER_CHASER; i++) {
+        this.Scenes[i].Mirror = false;
         for (var j = 0; j < CHANNELS_PER_SCENE; j++) {
           this.Scenes[i].Channels[j] = data[4 + (i * CHANNELS_PER_SCENE) + j];
         }
@@ -75,15 +86,7 @@ angular.module("MooringLights.services", [])
       return q.promise;
     };
 
-    this.write = function(button) {
-      var _self = this;
-
-      var q = $q.defer();
-
-      var client = new TCPClient({
-        Logging: true,
-      });
-
+    this.serialize = function() {
       // Serialize to struct Chaser
       var data = [];
       data[0] = (this.Interval) & 0xff;
@@ -96,7 +99,31 @@ angular.module("MooringLights.services", [])
         }
       }
 
-      client.send("WRITE", data)
+      return data;
+    };
+
+    // Writes the chaser to the controller and the specified button slot.
+    // If no button is given, the chaser is simply written to the current chaser
+    this.write = function(button) {
+      var _self = this;
+
+      var q = $q.defer();
+
+      var client = new TCPClient({
+        Logging: true,
+      });
+
+      var data = this.serialize();
+      var command;
+      if (button) {
+        // Button given, insert the nutton number
+        data.splice(0, 0, [0x30 + button.charCodeAt() - 65]);
+        command = "WRITE";
+      } else {
+        command = "USE";
+      }
+
+      client.send(command, data)
       .then(function(response) {
         q.resolve(_self);
 
@@ -104,6 +131,8 @@ angular.module("MooringLights.services", [])
         q.reject(error);
 
       });
+
+      return q.promise;
     };
 
     this.initialize();
@@ -139,7 +168,7 @@ angular.module("MooringLights.services", [])
 
       var data = [];
       for (var i = 0; i < this.Channels.length; i++) {
-        if (this.Channels[i] == 0) {
+        if (this.Channels[i] == 0) { // Also match "0"
           data[i] = 0;
         } else {
           // Compress non-zero values to be between 1 and intensity
@@ -160,9 +189,23 @@ angular.module("MooringLights.services", [])
   return (Scene);
 })
 
-.service("LightsService", function($window, Scene){
-  // The overall intensity (0 - 255) for all channels
-  this.Intensity = {Value: 0};
+.service("LightsService", function($window, Chaser, Scene){
+  // Deletes the specified chaser
+  this.deleteChaser = function(id) {
+    var chasers = this.getChasers();
+
+    var found = -1;
+    angular.forEach(chasers, function(item, index) {
+      if ((found === -1) && (item.ID == id))
+        found = index;
+    });
+
+    if (found === -1)
+      throw "No chaser could be found with the ID '" + id + "'";
+
+    chasers.splice(found, 1);
+    this.saveChasers(chasers);
+  };
 
   // Deletes the specified scene
   this.deleteScene = function(id) {
@@ -181,6 +224,38 @@ angular.module("MooringLights.services", [])
     this.saveScenes(scenes);
   };
 
+  // Get the specified chaser
+  this.getChaser = function(id) {
+    var chasers = this.getChasers();
+
+    var found = null;
+    angular.forEach(chasers, function(item, index) {
+      if (item.ID == id)
+        found = item;
+    });
+
+    if (found)
+      return found;
+
+    throw "No chaser could be found with the ID '" + id + "'";
+  };
+
+  // Gets all the chasers from local storage
+  this.getChasers = function() {
+    var saved = JSON.parse($window.localStorage.getItem("chasers") || "[]");
+    var chasers = [];
+    for (var i = 0; i < saved.length; i++) {
+      chasers.push(new Chaser(saved[i]));
+    }
+
+    return chasers;
+  };
+
+  // Gets the intensity used for all channels
+  this.getIntensity = function() {
+    return parseInt($window.localStorage.getItem("intensity")) || 0;
+  };
+
   // Get the specified scene
   this.getScene = function(id) {
     var scenes = this.getScenes();
@@ -188,7 +263,7 @@ angular.module("MooringLights.services", [])
     var found = null;
     angular.forEach(scenes, function(item, index) {
       if (item.ID == id)
-        found = new Scene(item);
+        found = item;
     });
 
     if (found)
@@ -216,6 +291,38 @@ angular.module("MooringLights.services", [])
     }
 
     return scenes;
+  };
+
+  // Sets the specified chaser
+  this.saveChaser = function(chaser) {
+    var chasers = this.getChasers();
+
+    var found = -1;
+    var maxID = 0;
+    angular.forEach(chasers, function(item, index) {
+      if ((found === -1) && (item.ID == chaser.ID))
+        found = index;
+
+      if (item.ID >= maxID)
+        maxID = item.ID;
+    });
+
+    if (!chaser.ID)
+      chaser.ID = maxID + 1;
+
+    chasers[found === -1 ? chasers.length : found] = chaser;
+
+    this.saveChasers(chasers);
+  };
+
+  // Saves all the chasers to localstorage
+  this.saveChasers = function(chasers) {
+    $window.localStorage.setItem("chasers", JSON.stringify(chasers));
+  };
+
+  // Saves the intensity used for all channels
+  this.saveIntensity = function(value) {
+    $window.localStorage.setItem("intensity", value);
   };
 
   // Sets the specified scene

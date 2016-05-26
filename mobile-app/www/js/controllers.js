@@ -15,6 +15,30 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
     $ionicHistory.goBack();
   };
 
+  $scope.doSave = function() {
+    if ($scope.IsController) {
+      // Write the chaser to the controller
+      $scope.Chaser.write($stateParams.id)
+      .then(function(response) {
+        Toast.showLongBottom("Chaser has been written to Button " + $stateParams.id);
+        $ionicHistory.goBack();
+
+      }).catch(function(error) {
+        console.log("Couldn't write chaser:");
+        console.log(JSON.stringify(error));
+
+        Toast.showLongBottom(error.message);
+
+      });
+
+    } else {
+      // Write the chaser to local storage
+      LightsService.saveChaser($scope.Chaser);
+      $rootScope.$broadcast("chasers-changed", $scope.Chaser);
+      $ionicHistory.goBack();
+    }
+  };
+
   $scope.getScenes = function() {
     return $scope.Chaser.Scenes.slice(0, $scope.Chaser.Count);
   };
@@ -59,7 +83,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
         });
 
       } else {
-        //$scope.Scene = LightsService.getScene($stateParams.id);
+        $scope.Chaser = LightsService.getChaser($stateParams.id);
 
       }
 
@@ -91,7 +115,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
 
   // Raised when the intensity slider value is changed
   $scope.onIntensityChange = function(value) {
-    $window.localStorage.setItem("intensity", value);
+    LightsService.saveIntensity(value);
 
     // Also need to broadcast that the intensity has changed
     $rootScope.$broadcast("intensity-changed", value);
@@ -104,14 +128,6 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
   };
 
   $scope.doSave = function() {
-    if (!$scope.Scene.Name) {
-      $ionicPopup.alert({
-        title: "Validation error",
-        template: "Please enter a name for the Lighting Scheme",
-      });
-      return;
-    }
-
     LightsService.saveScene($scope.Scene);
     $rootScope.$broadcast("scenes-changed", $scope.Scene);
     $ionicHistory.goBack();
@@ -144,7 +160,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
 
   $scope.initialize = function() {
     // Fetch the previous settings from localstorage
-    $scope.Intensity.Value = parseInt($window.localStorage.getItem("intensity") || "0");
+    $scope.Intensity.Value = LightsService.getIntensity();
 
     if ($stateParams.id) {
       $scope.Scene = LightsService.getScene($stateParams.id);
@@ -161,6 +177,8 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
 .controller("MainCtrl", function($scope, $rootScope, $timeout, $window, $ionicModal, $ionicPopover, $ionicPopup, Chaser, Scene, LightsService, TCPClient, Toast) {
   // These are the scenes that are currently available
   $scope.Scenes = [];
+
+  $scope.Chasers = [];
 
   $scope.Settings = {Host: "", Port: 8888, Timeout: 10000};
 
@@ -191,6 +209,10 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
     $scope.menuPopover.remove();
   });
 
+  $rootScope.$on("chasers-changed", function(event, data) {
+    $scope.reloadChasers();
+  });
+
   $rootScope.$on("intensity-changed", function(event, data) {
     // Reload the intensity
     $timeout(function() {
@@ -204,17 +226,28 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
     $scope.reloadScenes(true);
   });
 
-  $scope.onPresetClick = function(button) {
-    var client = new TCPClient({
-      Logging: true
-    });
-    client.send("LOAD", [0x30 + button.charCodeAt() - 65])
-    .then(function(response) {
+  $scope.onChaserClick = function(item) {
+    var promise;
+    if (item && item.write) {
+      promise = item.write();
+
+    } else if (typeof item === "string") {
+      var client = new TCPClient({
+        Logging: true
+      });
+      promise = client.send("LOAD", [0x30 + item.charCodeAt() - 65]);
+
+    } else {
+      return;
+
+    }
+
+    promise.then(function(response) {
       $scope.SelectedSceneID = null;
-      Toast.showLongBottom("Preset loaded");
+      Toast.showLongBottom("Chaser loaded");
 
     }).catch(function(error) {
-      console.log("Couldn't load preset:");
+      console.log("Couldn't load chaser:");
       console.log(JSON.stringify(error));
 
       Toast.showLongBottom(error.message);
@@ -228,12 +261,27 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
 
   // Raised when the intensity slider value is changed
   $scope.onIntensityChange = function(value) {
-    $window.localStorage.setItem("intensity", value);
+    LightsService.saveIntensity(value);
 
     $scope.setLevels();
   };
 
-  $scope.doSceneDelete = function(item) {
+  $scope.doDeleteChaser = function(item) {
+    var popup = $ionicPopup.confirm({
+      title: "Delete Chaser",
+      template: "Are you sure you want to delete the Chaser '" + item.Name + "'?",
+      okText: "Yes",
+      cancelText: "No",
+    });
+    popup.then(function(res) {
+      if (res) {
+        LightsService.deleteChaser(item.ID);
+        $scope.reloadChasers();
+      }
+    });
+  };
+
+  $scope.doDeleteScene = function(item) {
     var popup = $ionicPopup.confirm({
       title: "Delete Lighting Scheme",
       template: "Are you sure you want to delete the Light Scheme '" + item.Name + "'?",
@@ -252,6 +300,10 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
         $scope.reloadScenes(true);
       }
     });
+  };
+
+  $scope.reloadChasers = function() {
+    $scope.Chasers = LightsService.getChasers();
   };
 
   $scope.reloadScenes = function(setLevels) {
@@ -507,11 +559,12 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
   };
 
   $scope.initialize = function() {
-    // Fetch any saved scenes
+    // Fetch any saved scenes and chasers
     $scope.reloadScenes();
+    $scope.reloadChasers();
 
     // Fetch the previous settings from localstorage
-    $scope.Intensity.Value = parseInt($window.localStorage.getItem("intensity") || "0");
+    $scope.Intensity.Value = LightsService.getIntensity();
 
     // The controller's TCP settings
     angular.extend($scope.Settings, JSON.parse($window.localStorage.getItem("settings") || "{}"));
