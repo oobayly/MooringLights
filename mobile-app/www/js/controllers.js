@@ -19,6 +19,28 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
     return $scope.Chaser.Scenes.slice(0, $scope.Chaser.Count);
   };
 
+  $scope.showEditScene = function(scene) {
+    var scope = $rootScope.$new(true);
+    scope.original = scene;
+    scope.scene = new Scene(scene); // Create a copy of the scene
+
+    var popup = $ionicPopup.confirm({
+      scope: scope,
+      title: "Edit Scene",
+      templateUrl: "scene-popup.html",
+
+    }).then(function(res) {
+      if (res) {
+        // Write back the information to the original scene
+        scope.original.Mirror = scope.scene.Mirror;
+        for (var i = 0; i < scope.scene.Channels.length; i++) {
+          scope.original.Channels[i] = scope.scene.Channels[i];
+        }
+      }
+      scope.$destroy();
+    });
+  };
+
   $scope.initialize = function() {
     if ($stateParams.id) {
       if (isNaN($stateParams.id)) {
@@ -269,7 +291,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
       $scope.setLevelTimout = null;
 
       var scene;
-      if ($scope.SelectedSceneID != null) {
+      if ($scope.SelectedSceneID !== null) {
         scene = LightsService.getScene($scope.SelectedSceneID);
 
         scene.writeLevels($scope.Intensity.Value)

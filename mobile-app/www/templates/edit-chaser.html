@@ -26,19 +26,17 @@
       </ion-item>
 
       <ion-item class="item-divider">Scenes</ion-item>
-      <ion-item class="item-button-right" ng-repeat="scene in getScenes() track by $index" ng-click="onSceneClick(scene)">
+      <ion-item class="item-button-right" ng-repeat="scene in getScenes() track by $index">
         <div class="item-content">
           <lights value="scene.Channels"></lights>
           {{scene.Name}}
           <div class="buttons">
-            <a class="button button-positive icon ion-edit" href="" ng-click="$event.stopPropagation();"></a>
+            <button class="button button-positive icon ion-edit" ng-click="showEditScene(scene)"></button>
           </div>
         </div>
       </ion-item>
 
     </div>
-
-    <pre>{{Chaser | json}}</pre>
 
   </ion-content>
 
@@ -48,4 +46,8 @@
       <button class="button button-weight-3 button-positive icon ion-checkmark-round" ng-click="doSave()" ng-disabled="!(Chaser.Interval && Chaser.Name)">Save</button>
     </div>
   </ion-footer-bar>
+
+  <script id="scene-popup.html" type="text/ng-template">
+    <scene-editor scene="scene" show-name="false" on-channel-change="onChannelChange()"></scene-editor>
+  </script>
 </ion-view>
