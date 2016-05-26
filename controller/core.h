@@ -24,7 +24,7 @@
 #define ESP_RX 8
 
 // Timer1
-#define TIMER1_INTERVAL 50 /* Timer 1 interval (in ms) - can't be too low or it messes with SoftwareSerial */
+#define TIMER1_INTERVAL 100 /* Timer 1 interval (in ms) - can't be too low or it messes with SoftwareSerial */
 #define LED_BLINK_INTERVAL 250 /* LED Blink interval (in ms) */
 #define LED_BLINK_TICKS (LED_BLINK_INTERVAL / TIMER1_INTERVAL)
 
