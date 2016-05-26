@@ -36,7 +36,7 @@ void setup() {
   Timer1.initialize(1000);
   Timer1.attachInterrupt(timer1_tick);
 
-  setupChasers();
+  //setupChasers();
   setupPWM();
   setupRF();
   setupWiFi();
