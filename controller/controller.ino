@@ -16,7 +16,11 @@ void setup() {
 #endif
 
   // Read in the saved configuration, and make sure it's with acceptable bounds
-  Serial.println("Loading configuration...");
+  Serial.println(F("Loading configuration..."));
+  Serial.print(F("\tTicking every "));
+  Serial.print(TIMER1_INTERVAL);
+  Serial.println(F(" ms"));
+  
   config_read((Config *)config);
   if (config->fade_interval < 250) {
     config->fade_interval = 250;
@@ -24,9 +28,9 @@ void setup() {
   if (config->sleep_interval < 30000) {
     config->sleep_interval = 7200000;
   }
-  Serial.print("\tFade Interval:\t");
+  Serial.print(F("\tFade Interval:\t"));
   Serial.println(config->fade_interval);
-  Serial.print("\tSleep Interval:\t");
+  Serial.print(F("\tSleep Interval:\t"));
   Serial.println(config->sleep_interval);
 
   pinMode(STATUS_LED, OUTPUT);

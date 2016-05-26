@@ -102,7 +102,7 @@ typedef struct Program {
   Chaser * const current = new Chaser();
   Chaser * const queued = new Chaser();
   bool hasChanged = false;
-};
+} Program;
 
 // Counter
 typedef struct Counter {
