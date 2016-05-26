@@ -82,4 +82,48 @@ angular.module("MooringLights.directives", [])
   };
 })
 
+.directive("sceneEditor", function($timeout) {
+  return {
+    restrict: "E",
+    replace: false,
+    templateUrl: "templates/scene-editor.html",
+
+    link: function($scope) {
+      $scope.showName = $scope.showName || true;
+
+      // Raised when the intensity slider value is changed
+      $scope.onSlide = function(index, value) {
+        $timeout(function() {
+          if ($scope.scene.Mirror) {
+            $scope.scene.Channels[$scope.scene.Channels.length - 1 - index] = $scope.scene.Channels[index];
+          }
+
+          if ($scope.onChannelChange)
+            $scope.onChannelChange({});
+        });
+      };
+
+      $scope.onMirrorChanged = function() {
+        $timeout(function() {
+          if ($scope.scene.Mirror) {
+            // Make sure the values are mirrored
+            for (var i = 0; i < $scope.scene.Channels.length / 2; i++) {
+              $scope.scene.Channels[$scope.scene.Channels.length - 1 - i] = $scope.scene.Channels[i];
+            }
+          }
+
+          if ($scope.onChannelChange)
+            $scope.onChannelChange({});
+        });
+      };
+    },
+
+    scope: {
+      scene: "=",
+      showName: "@",
+      onChannelChange: "&"
+    }
+  };
+})
+
 ;

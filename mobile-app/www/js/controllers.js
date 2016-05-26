@@ -60,34 +60,21 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
 
   $scope.setLevelTimeout = null;
 
-  // Raised when the intensity slider value is changed
-  $scope.onChannelChanged = function(index, value) {
+  // Raised when a channel changes
+  $scope.onChannelChange = function() {
     $timeout(function() {
-      if ($scope.Scene.Mirror) {
-        $scope.Scene.Channels[$scope.Scene.Channels.length - 1 - index] = $scope.Scene.Channels[index];
-      }
-
       $scope.setLevels();
     });
   };
 
   // Raised when the intensity slider value is changed
-  $scope.onIntensityChanged = function(value) {
+  $scope.onIntensityChange = function(value) {
     $window.localStorage.setItem("intensity", value);
 
     // Also need to broadcast that the intensity has changed
     $rootScope.$broadcast("intensity-changed", value);
 
     $scope.setLevels();
-  };
-
-  $scope.onMirrorChanged = function() {
-    if ($scope.Scene.Mirror) {
-      // Make sure the values are mirrored
-      for (var i = 0; i < $scope.Scene.Channels.length / 2; i++) {
-        $scope.Scene.Channels[$scope.Scene.Channels.length - 1 - i] = $scope.Scene.Channels[i];
-      }
-    }
   };
 
   $scope.doBack = function() {
@@ -143,8 +130,6 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
       $scope.Scene = new Scene();
       $scope.IsNew = true;
     }
-
-    $scope.onMirrorChanged();
   };
 
   $scope.initialize();
@@ -220,7 +205,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
   };
 
   // Raised when the intensity slider value is changed
-  $scope.onIntensityChanged = function(value) {
+  $scope.onIntensityChange = function(value) {
     $window.localStorage.setItem("intensity", value);
 
     $scope.setLevels();
