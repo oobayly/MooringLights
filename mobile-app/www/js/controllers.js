@@ -175,6 +175,8 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
 
 // MainCtrl: The controller used for displaying all the scenes
 .controller("MainCtrl", function($scope, $rootScope, $timeout, $window, $ionicModal, $ionicPopover, $ionicPopup, Chaser, Scene, LightsService, TCPClient, Toast) {
+  $scope.Presets = ["A", "B", "C"];
+
   // These are the scenes that are currently available
   $scope.Scenes = [];
 
@@ -443,6 +445,49 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
   $scope.showSettings = function() {
     $scope.menuPopover.hide();
     $scope.settingsModal.show();
+  };
+
+  $scope.showSelectChaser = function(button) {
+    var scope = $rootScope.$new(true);
+    scope.chasers = $scope.Chasers;
+    scope.selected = {value: null};
+
+    var popup = $ionicPopup.show({
+      scope: scope,
+      templateUrl: "chaser-popup.html",
+      title: "Select a Chaser",
+      buttons: [
+        {text: "Cancel"},
+        {
+          text: "Use",
+          type: "button-positive",
+          onTap: function(e) {
+            if (scope.selected.value) {
+              // If there's a selected value, write
+              scope.selected.value.write(button)
+              .then(function(response) {
+                popup.close();
+                Toast.showLongBottom("Chaser has been written to Button " + button);
+
+              }).catch(function(error) {
+                console.log("Couldn't write chaser:");
+                console.log(JSON.stringify(error));
+
+                Toast.showLongBottom(error.message);
+
+              });
+            }
+
+            // Don't allow the popup to close
+            e.preventDefault();
+          }
+        }
+      ]
+    });
+
+    popup.finally(function() {
+      scope.$destroy();
+    });
   };
 
   $scope.showSleepTimeout = function(timeout) {

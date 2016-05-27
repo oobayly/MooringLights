@@ -45,23 +45,12 @@
     </div>
 
     <div class="card list">
-      <ion-item class="item-divider">Key Fobb Buttons</ion-item>
-      <ion-item class="item-button-right" ng-click="onChaserClick('A')">
-        Button A
+      <ion-item class="item-divider">Key Fob Buttons</ion-item>
+      <ion-item class="item-button-right" ng-repeat="preset in Presets" ng-click="onChaserClick(preset)">
+        Button {{preset}}
         <div class="buttons">
-          <a class="button button-positive icon ion-edit" href="#/chaser/edit/A" ng-click="$event.stopPropagation();"></a>
-        </div>
-      </ion-item>
-      <ion-item class="item-button-right" ng-click="onChaserClick('B')">
-        Button B
-        <div class="buttons">
-          <a class="button button-positive icon ion-edit" href="#/chaser/edit/B" ng-click="$event.stopPropagation();"></a>
-        </div>
-      </ion-item>
-      <ion-item class="item-button-right" ng-click="onChaserClick('C')">
-        Button C
-        <div class="buttons">
-          <a class="button button-positive icon ion-edit" href="#/chaser/edit/C" ng-click="$event.stopPropagation();"></a>
+          <button class="button button-positive icon ion-bookmark" ng-click="showSelectChaser(preset);$event.stopPropagation();" ng-show="Chasers && Chasers.length"></button>
+          <a class="button button-positive icon ion-edit" href="#/chaser/edit/{{preset}}" ng-click="$event.stopPropagation();"></a>
         </div>
       </ion-item>
     </div>
@@ -104,6 +93,14 @@
       <ion-item class="center huge">
         <lights value="status"></lights>
       </ion-item>
+    </ion-list>
+  </script>
+
+  <script id="chaser-popup.html" type="text/ng-template">
+    <ion-list>
+      <ion-radio class="" ng-repeat="chaser in chasers | orderBy:'Name' track by $index" ng-model="selected.value" ng-value="chaser">
+        {{chaser.Name}}
+      </ion-radio>
     </ion-list>
   </script>
 </ion-view>
