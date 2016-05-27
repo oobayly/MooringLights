@@ -475,23 +475,9 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
   $scope.showTemperature = function() {
     $scope.menuPopover.hide();
 
-    var client = new TCPClient({
-      Logging: true
-    });
-    client.send("TEMP", null)
-    .then(function(response) {
-      var message = "Controller temperature is ";
-      for (var i = 4; i < response.data.length; i++) {
-        message += String.fromCharCode(response.data[i]);
-      }
-      message += "°";
-      Toast.showLongBottom(message);
-
-    }).catch(function(error) {
-      console.log("Couldn't get temperature:");
-      console.log(JSON.stringify(error));
-
-      Toast.showLongBottom(error.message);
+    LightsService.getTemperature()
+    .then(function(temperature) {
+      Toast.showLongBottom("Controller temperature is " + temperature + "°");
     });
   };
 

@@ -70,7 +70,6 @@ angular.module("MooringLights.services", [])
       var q = $q.defer();
 
       var client = new TCPClient({
-        Logging: true,
       });
 
       client.send("LOAD", [0x30 + button.charCodeAt() - 65])
@@ -97,7 +96,6 @@ angular.module("MooringLights.services", [])
       var q = $q.defer();
 
       var client = new TCPClient({
-        Logging: true,
       });
 
       client.send("READ", [0x30 + button.charCodeAt() - 65])
@@ -148,7 +146,6 @@ angular.module("MooringLights.services", [])
       var q = $q.defer();
 
       var client = new TCPClient({
-        Logging: true,
       });
 
       var data = this.serialize();
@@ -217,7 +214,6 @@ angular.module("MooringLights.services", [])
       var q = $q.defer();
 
       var client = new TCPClient({
-        Logging: true
       });
 
       client.send("STATUS", null)
@@ -271,7 +267,6 @@ angular.module("MooringLights.services", [])
 
       TIMEOUT = $timeout(function() {
         var client = new TCPClient({
-          Logging: true,
         });
 
         client.send("SET", data)
@@ -296,27 +291,6 @@ angular.module("MooringLights.services", [])
       TIMEOUT.catch(function(error) {
         q.resolve({canclled: true});
       });
-
-//      var client = new TCPClient({
-//        Logging: true,
-//      });
-//
-//      client.send("SET", data)
-//      .then(function(response) {
-//        console.log("Set levels successfuly:");
-//        console.log(JSON.stringify(response));
-//        Toast.showLongBottom("Lights have been set");
-//
-//        q.resolve(response);
-//
-//      }).catch(function(error) {
-//        console.log("Couldn't write levels:");
-//        console.log(JSON.stringify(error));
-//        Toast.showLongBottom(error.message);
-//
-//        q.reject();
-//
-//      });
 
       return q.promise;
     };
@@ -394,7 +368,6 @@ angular.module("MooringLights.services", [])
     var q = $q.defer();
 
     var client = new TCPClient({
-      Logging: true
     });
     client.send("FADE", null)
     .then(function(response) {
@@ -460,7 +433,6 @@ angular.module("MooringLights.services", [])
     var q = $q.defer();
 
     var client = new TCPClient({
-      Logging: true
     });
     client.send("SLEEP", null)
     .then(function(response) {
@@ -469,6 +441,33 @@ angular.module("MooringLights.services", [])
 
     }).catch(function(error) {
       console.log("Couldn't get sleep timeout:");
+      console.log(JSON.stringify(error));
+      Toast.showLongBottom(error.message);
+
+      q.reject();
+
+    });
+
+    return q.promise;
+  };
+
+  // Get the temperature from the controller
+  this.getTemperature = function() {
+    var q = $q.defer();
+
+    var client = new TCPClient({
+    });
+    client.send("TEMP", null)
+    .then(function(response) {
+      var temp  = "";
+      for (var i = 4; i < response.data.length; i++) {
+        temp += String.fromCharCode(response.data[i]);
+      }
+
+      q.resolve(parseInt(temp));
+
+    }).catch(function(error) {
+      console.log("Couldn't get temperature:");
       console.log(JSON.stringify(error));
       Toast.showLongBottom(error.message);
 
@@ -548,7 +547,6 @@ angular.module("MooringLights.services", [])
     ];
 
     var client = new TCPClient({
-      Logging: true
     });
     client.send("FADE", data)
     .then(function(response) {
@@ -578,7 +576,6 @@ angular.module("MooringLights.services", [])
     ];
 
     var client = new TCPClient({
-      Logging: true
     });
     client.send("SLEEP", data)
     .then(function(response) {
