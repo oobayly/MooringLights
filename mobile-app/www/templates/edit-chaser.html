@@ -31,7 +31,8 @@
           <lights value="scene.Channels"></lights>
           {{scene.Name}}
           <div class="buttons">
-            <button class="button button-positive icon ion-edit" ng-click="showEditScene(scene)"></button>
+            <a class="button button-positive icon ion-edit" ng-click="showEditScene(scene)"></a>
+            <a class="button button-positive icon ion-bookmark" ng-click="showSelectScene(scene)" ng-show="Scenes && Scenes.length"></a>
           </div>
         </div>
       </ion-item>
@@ -49,5 +50,13 @@
 
   <script id="scene-popup.html" type="text/ng-template">
     <scene-editor scene="scene" show-name="false" on-channel-change="onChannelChange()"></scene-editor>
+  </script>
+
+  <script id="select-scene-popup.html" type="text/ng-template">
+    <ion-list>
+      <ion-radio class="" ng-repeat="scene in scenes | orderBy:'Name' track by $index" ng-model="selected.value" ng-value="scene">
+        {{scene.Name}}
+      </ion-radio>
+    </ion-list>
   </script>
 </ion-view>

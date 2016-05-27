@@ -49,8 +49,8 @@
       <ion-item class="item-button-right" ng-repeat="preset in Presets" ng-click="onChaserClick(preset)">
         Button {{preset}}
         <div class="buttons">
-          <button class="button button-positive icon ion-bookmark" ng-click="showSelectChaser(preset);$event.stopPropagation();" ng-show="Chasers && Chasers.length"></button>
           <a class="button button-positive icon ion-edit" href="#/chaser/edit/{{preset}}" ng-click="$event.stopPropagation();"></a>
+          <a class="button button-positive icon ion-bookmark" ng-click="showSelectChaser(preset);$event.stopPropagation();" ng-show="Chasers && Chasers.length"></a>
         </div>
       </ion-item>
     </div>
@@ -88,19 +88,19 @@
     </ion-popover-view>
   </script>
 
+  <script id="select-chaser-popup.html" type="text/ng-template">
+    <ion-list>
+      <ion-radio class="" ng-repeat="chaser in chasers | orderBy:'Name' track by $index" ng-model="selected.value" ng-value="chaser">
+        {{chaser.Name}}
+      </ion-radio>
+    </ion-list>
+  </script>
+
   <script id="status-popup.html" type="text/ng-template">
     <ion-list>
       <ion-item class="center huge">
         <lights value="current.Channels"></lights>
       </ion-item>
-    </ion-list>
-  </script>
-
-  <script id="chaser-popup.html" type="text/ng-template">
-    <ion-list>
-      <ion-radio class="" ng-repeat="chaser in chasers | orderBy:'Name' track by $index" ng-model="selected.value" ng-value="chaser">
-        {{chaser.Name}}
-      </ion-radio>
     </ion-list>
   </script>
 </ion-view>

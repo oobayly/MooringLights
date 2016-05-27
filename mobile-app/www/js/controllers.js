@@ -7,6 +7,8 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
 .controller("EditChaserCtrl", function($scope, $rootScope, $window, $ionicHistory, $ionicPopup, $stateParams, Chaser, LightsService, Scene, Toast) {
   $scope.Chaser = {};
 
+  $scope.Scenes = [];
+
   $scope.IsController = false; // Flag indicating whether the Chaser is one stored on the controller
 
   $scope.IsNew = false;
@@ -57,7 +59,44 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
     });
   };
 
+  $scope.showSelectScene = function(scene) {
+    var scope = $rootScope.$new(true);
+    scope.scenes = $scope.Scenes;
+    scope.selected = {value: null};
+
+    var popup = $ionicPopup.show({
+      scope: scope,
+      templateUrl: "select-scene-popup.html",
+      title: "Select a Scene",
+      buttons: [
+        {text: "Cancel"},
+        {
+          text: "Use",
+          type: "button-positive",
+          onTap: function(e) {
+            if (scope.selected.value) {
+              scene.Mirror = scope.selected.value.Mirror;
+              for (var i = 0; i < scene.Channels.length; i++) {
+                scene.Channels[i] = scope.selected.value.Channels[i];
+              }
+              popup.close();
+            }
+
+            // Don't allow the popup to close
+            e.preventDefault();
+          }
+        }
+      ]
+    });
+
+    popup.finally(function() {
+      scope.$destroy();
+    });
+  };
+
   $scope.initialize = function() {
+    $scope.Scenes = LightsService.getScenes();
+
     if ($stateParams.id) {
       if (isNaN($stateParams.id)) {
         $scope.Chaser = new Chaser();
@@ -411,7 +450,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
 
     var popup = $ionicPopup.show({
       scope: scope,
-      templateUrl: "chaser-popup.html",
+      templateUrl: "select-chaser-popup.html",
       title: "Select a Chaser",
       buttons: [
         {text: "Cancel"},
