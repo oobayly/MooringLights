@@ -320,26 +320,6 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
       $scope.setLevels();
   };
 
-  $scope.setFadeInterval = function(interval) {
-    var data = [
-      (interval) & 0xff,
-      (interval >> 8) & 0xff
-      ];
-
-    var client = new TCPClient({
-      Logging: true
-    });
-    client.send("FADE", data)
-    .then(function(response) {
-
-    }).catch(function(error) {
-      console.log("Couldn't set fade interval:");
-      console.log(JSON.stringify(error));
-
-      Toast.showLongBottom(error.message);
-    });
-  };
-
   $scope.setLevels = function() {
     if ($scope.setLevelTimeout) {
       $window.clearTimeout($scope.setLevelTimeout);
@@ -362,28 +342,6 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
     }, 100);
   };
 
-  $scope.setSleepTimeout = function(timeout) {
-    var data = [
-      (timeout) & 0xff,
-      (timeout >> 8) & 0xff,
-      (timeout >> 16) & 0xff,
-      (timeout >> 24) & 0xff
-      ];
-
-    var client = new TCPClient({
-      Logging: true
-    });
-    client.send("SLEEP", data)
-    .then(function(response) {
-
-    }).catch(function(error) {
-      console.log("Couldn't set sleep timeout:");
-      console.log(JSON.stringify(error));
-
-      Toast.showLongBottom(error.message);
-    });
-  };
-
   $scope.showFadeInterval = function(interval) {
     $scope.menuPopover.hide();
 
@@ -392,7 +350,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
       scope.data = {fadeInterval: interval};
 
       var popup = $ionicPopup.show({
-        template: "<input type='number' min='250' max='10000' step='50' ng-model='data.fadeInterval'>",
+        template: "<input type='number' min='200' max='10000' step='100' ng-model='data.fadeInterval'>",
         title: "Enter the fade interval",
         subTitle: "The number of milliseconds it takes for the lights to fade.",
         scope: scope,
@@ -402,37 +360,27 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
             text: "Save",
             type: "button-positive",
             onTap: function(e) {
-              if (!scope.data.fadeInterval) {
-                e.preventDefault();
-              } else {
-                return scope.data.fadeInterval;
+              if (scope.data.fadeInterval) {
+                LightsService.setFade(scope.data.fadeInterval)
+                .then(function() {
+                  popup.close();
+                });
               }
+
+              e.preventDefault();
             }
           }
         ]
       });
 
-      popup.then(function(interval) {
+      popup.finally(function() {
         scope.$destroy();
-        if (interval) {
-          $scope.setFadeInterval(interval);
-        }
       });
 
     } else {
-      var client = new TCPClient({
-        Logging: true
-      });
-      client.send("FADE", null)
-      .then(function(response) {
-        // Returns a uint16_t
-        $scope.showFadeInterval((response.data[5] << 8) + response.data[4]);
-
-      }).catch(function(error) {
-        console.log("Couldn't get fade interval:");
-        console.log(JSON.stringify(error));
-
-        Toast.showLongBottom(error.message);
+      LightsService.getFade()
+      .then(function(value) {
+        $scope.showFadeInterval(value);
       });
     }
   };
@@ -497,37 +445,27 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
             type: "button-positive",
             onTap: function(e) {
               var sleepTimeout = scope.data.time.getTime();
-              if (!sleepTimeout) {
-                e.preventDefault();
-              } else {
-                return sleepTimeout;
+              if (sleepTimeout) {
+                LightsService.setSleep(sleepTimeout)
+                .then(function() {
+                  popup.close();
+                });
               }
+
+              e.preventDefault();
             }
           }
         ]
       });
 
-      popup.then(function(timeout) {
+      popup.finally(function() {
         scope.$destroy();
-        if (timeout) {
-          $scope.setSleepTimeout(timeout);
-        }
       });
 
     } else {
-      var client = new TCPClient({
-        Logging: true
-      });
-      client.send("SLEEP", null)
-      .then(function(response) {
-        // Returns a uint32_t
-        $scope.showSleepTimeout((response.data[7] << 24) + (response.data[6] << 16) + (response.data[5] << 8) + response.data[4]);
-
-      }).catch(function(error) {
-        console.log("Couldn't get sleep interval:");
-        console.log(JSON.stringify(error));
-
-        Toast.showLongBottom(error.message);
+      LightsService.getFade()
+      .then(function(value) {
+        $scope.showSleepTimeout(value);
       });
     }
   };

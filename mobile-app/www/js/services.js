@@ -293,7 +293,7 @@ angular.module("MooringLights.services", [])
   return (Scene);
 })
 
-.service("LightsService", function($window, Chaser, Scene){
+.service("LightsService", function($q, $window, Chaser, Scene, TCPClient, Toast){
   // Deletes the specified chaser
   this.deleteChaser = function(id) {
     var chasers = this.getChasers();
@@ -355,6 +355,30 @@ angular.module("MooringLights.services", [])
     return chasers;
   };
 
+  // Gets the fade interval from the controller
+  this.getFade = function() {
+    var q = $q.defer();
+
+    var client = new TCPClient({
+      Logging: true
+    });
+    client.send("FADE", null)
+    .then(function(response) {
+      // Returns a uint16_t
+      q.resolve((response.data[5] << 8) + response.data[4]);
+
+    }).catch(function(error) {
+      console.log("Couldn't get fade interval:");
+      console.log(JSON.stringify(error));
+      Toast.showLongBottom(error.message);
+
+      q.reject();
+
+    });
+
+    return q.promise;
+  };
+
   // Gets the intensity used for all channels
   this.getIntensity = function() {
     return parseInt($window.localStorage.getItem("intensity")) || 0;
@@ -395,6 +419,30 @@ angular.module("MooringLights.services", [])
     }
 
     return scenes;
+  };
+
+  // Gets the sleep timeout from the controller
+  this.getSleep = function() {
+    var q = $q.defer();
+
+    var client = new TCPClient({
+      Logging: true
+    });
+    client.send("SLEEP", null)
+    .then(function(response) {
+      // Returns a uint32_t
+      q.resolve((response.data[7] << 24) + (response.data[6] << 16) + (response.data[5] << 8) + response.data[4]);
+
+    }).catch(function(error) {
+      console.log("Couldn't get sleep timeout:");
+      console.log(JSON.stringify(error));
+      Toast.showLongBottom(error.message);
+
+      q.reject();
+
+    });
+
+    return q.promise;
   };
 
   // Sets the specified chaser
@@ -454,6 +502,64 @@ angular.module("MooringLights.services", [])
   // Saves all the scenes to localstorage
   this.saveScenes = function(scenes) {
     $window.localStorage.setItem("scenes", JSON.stringify(scenes));
+  };
+
+  // Sets the fade interval on the controller
+  this.setFade = function(value) {
+    var q = $q.defer();
+
+    var data = [
+      (value) & 0xff,
+      (value >> 8) & 0xff
+    ];
+
+    var client = new TCPClient({
+      Logging: true
+    });
+    client.send("FADE", data)
+    .then(function(response) {
+      q.resolve();
+
+    }).catch(function(error) {
+      console.log("Couldn't set fade interval:");
+      console.log(JSON.stringify(error));
+      Toast.showLongBottom(error.message);
+
+      q.reject();
+
+    });
+
+    return q.promise;
+  };
+
+  // Sets the sleep timeout on the controller
+  this.setSleep = function(value) {
+    var q = $q.defer();
+
+    var data = [
+      (value) & 0xff,
+      (value >> 8) & 0xff,
+      (value >> 16) & 0xff,
+      (value >> 24) & 0xff
+    ];
+
+    var client = new TCPClient({
+      Logging: true
+    });
+    client.send("SLEEP", data)
+    .then(function(response) {
+      q.resolve();
+
+    }).catch(function(error) {
+      console.log("Couldn't set sleep timeout:");
+      console.log(JSON.stringify(error));
+      Toast.showLongBottom(error.message);
+
+      q.reject();
+
+    });
+
+    return q.promise;
   };
 
 })
