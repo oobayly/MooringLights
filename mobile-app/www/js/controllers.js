@@ -20,15 +20,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
       // Write the chaser to the controller
       $scope.Chaser.write($stateParams.id)
       .then(function(response) {
-        Toast.showLongBottom("Chaser has been written to Button " + $stateParams.id);
         $ionicHistory.goBack();
-
-      }).catch(function(error) {
-        console.log("Couldn't write chaser:");
-        console.log(JSON.stringify(error));
-
-        Toast.showLongBottom(error.message);
-
       });
 
     } else {
@@ -73,11 +65,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
         .then(function(response) {
           $scope.IsController = true;
 
-        }).catch(function(error) {
-          console.log("Couldn't read chaser:");
-          console.log(JSON.stringify(error));
-
-          Toast.showLongBottom(error.message);
+        }).catch(function() {
           $scope.doBack();
 
         });
@@ -141,20 +129,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
 
     $scope.setLevelTimeout = $window.setTimeout(function () {
       $scope.setLevelTimout = null;
-
-      $scope.Scene.writeLevels($scope.Intensity.Value)
-      .then(function(response) {
-        console.log("Set levels successfuly:");
-        console.log(JSON.stringify(response));
-        Toast.showLongBottom("Lights have been set");
-
-      }).catch(function(error) {
-        console.log("Couldn't write levels:");
-        console.log(JSON.stringify(error));
-
-        $scope.SelectedSceneID = null;
-        Toast.showLongBottom(error.message);
-      });
+      $scope.Scene.write($scope.Intensity.Value);
     }, 100);
   };
 
@@ -234,10 +209,8 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
       promise = item.write();
 
     } else if (typeof item === "string") {
-      var client = new TCPClient({
-        Logging: true
-      });
-      promise = client.send("LOAD", [0x30 + item.charCodeAt() - 65]);
+      var chaser = new Chaser();
+      promise = chaser.load(item);
 
     } else {
       return;
@@ -246,13 +219,6 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
 
     promise.then(function(response) {
       $scope.SelectedSceneID = null;
-      Toast.showLongBottom("Chaser loaded");
-
-    }).catch(function(error) {
-      console.log("Couldn't load chaser:");
-      console.log(JSON.stringify(error));
-
-      Toast.showLongBottom(error.message);
     });
   };
 
@@ -348,18 +314,9 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
       if ($scope.SelectedSceneID !== null) {
         scene = LightsService.getScene($scope.SelectedSceneID);
 
-        scene.writeLevels($scope.Intensity.Value)
-        .then(function(response) {
-          console.log("Set levels successfuly:");
-          console.log(JSON.stringify(response));
-          Toast.showLongBottom("Lights have been set");
-
-        }).catch(function(error) {
-          console.log("Couldn't write levels:");
-          console.log(JSON.stringify(error));
-
+        scene.write($scope.Intensity.Value)
+        .catch(function(error) {
           $scope.SelectedSceneID = null;
-          Toast.showLongBottom(error.message);
         });
       }
 
@@ -463,18 +420,10 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
           type: "button-positive",
           onTap: function(e) {
             if (scope.selected.value) {
-              // If there's a selected value, write
+              // If there's a selected value, write it and only close when it succeeds
               scope.selected.value.write(button)
               .then(function(response) {
                 popup.close();
-                Toast.showLongBottom("Chaser has been written to Button " + button);
-
-              }).catch(function(error) {
-                console.log("Couldn't write chaser:");
-                console.log(JSON.stringify(error));
-
-                Toast.showLongBottom(error.message);
-
               });
             }
 
@@ -544,12 +493,12 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
     }
   };
 
-  $scope.showStatus = function(status) {
+  $scope.showStatus = function(current) {
     $scope.menuPopover.hide();
 
-    if (status && status.length) {
+    if (current) {
       var scope = $rootScope.$new(true);
-      scope.status = status;
+      scope.current = current;
 
       var popup = $ionicPopup.alert({
         scope: scope,
@@ -560,22 +509,10 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
       });
 
     } else {
-      var client = new TCPClient({
-        Logging: true
-      });
-      client.send("STATUS", null)
-      .then(function(response) {
-        var status = [];
-        for (var i = 4; i < response.data.length; i++) {
-          status.push(response.data[i]);
-        }
-        $scope.showStatus(status);
-
-      }).catch(function(error) {
-        console.log("Couldn't get status:");
-        console.log(JSON.stringify(error));
-
-        Toast.showLongBottom(error.message);
+      var scene = new Scene();
+      scene.read()
+      .then(function(scene) {
+        $scope.showStatus(scene);
       });
     }
   };

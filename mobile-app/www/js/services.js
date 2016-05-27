@@ -4,7 +4,7 @@
 
 angular.module("MooringLights.services", [])
 
-.factory("Chaser", function($q, $window, Scene, TCPClient) {
+.factory("Chaser", function($q, $window, Scene, TCPClient, Toast) {
   var CHANNELS_PER_SCENE = 6;
   var SCENES_PER_CHASER = 6;
   var DEFAULTS = {Name: "", Interval: 1000, Count: 1, Scenes: []};
@@ -49,11 +49,46 @@ angular.module("MooringLights.services", [])
       this.Interval = (data[0]) + (data[1] << 8);
       this.Count = Math.min(data[2], SCENES_PER_CHASER); // In case un-initialised data is returned
       for (var i = 0; i < SCENES_PER_CHASER; i++) {
-        this.Scenes[i].Mirror = false;
+        var scene = this.Scenes[i];
         for (var j = 0; j < CHANNELS_PER_SCENE; j++) {
-          this.Scenes[i].Channels[j] = data[4 + (i * CHANNELS_PER_SCENE) + j];
+          scene.Channels[j] = data[4 + (i * CHANNELS_PER_SCENE) + j];
+        }
+
+        scene.Mirror = true;
+        for (var j = 0; j < scene.Channels.length / 2; j++) {
+          if (scene.Channels[j] !== scene.Channels[scene.Channels.length - 1 - j]) {
+            scene.Mirror = false;
+            break;
+          }
         }
       }
+    };
+
+    this.load = function(button) {
+      var _self = this;
+
+      var q = $q.defer();
+
+      var client = new TCPClient({
+        Logging: true,
+      });
+
+      client.send("LOAD", [0x30 + button.charCodeAt() - 65])
+      .then(function(response) {
+        Toast.showLongBottom("Chaser loaded");
+
+        q.resolve(_self);
+
+      }).catch(function(error) {
+        console.log("Couldn't load chaser:");
+        console.log(JSON.stringify(error));
+        Toast.showLongBottom(error.message);
+
+        q.reject();
+
+      });
+
+      return q.promise;
     };
 
     this.read = function(button) {
@@ -78,6 +113,10 @@ angular.module("MooringLights.services", [])
         q.resolve(_self);
 
       }).catch(function(error) {
+        console.log("Couldn't read chaser:");
+        console.log(JSON.stringify(error));
+        Toast.showLongBottom(error.message);
+
         q.reject(error);
 
       });
@@ -90,11 +129,11 @@ angular.module("MooringLights.services", [])
       var data = [];
       data[0] = (this.Interval) & 0xff;
       data[1] = (this.Interval >> 8) & 0xff;
-      data[2] = this.Count;
+      data[2] = parseInt(this.Count);
       data[3] = 0; // Index is unused client side
       for (var i = 0; i < SCENES_PER_CHASER; i++) {
         for (var j = 0; j < CHANNELS_PER_SCENE; j++) {
-          data[4 + (i * CHANNELS_PER_SCENE) + j] = this.Scenes[i].Channels[j];
+          data[4 + (i * CHANNELS_PER_SCENE) + j] = parseInt(this.Scenes[i].Channels[j]);
         }
       }
 
@@ -124,9 +163,19 @@ angular.module("MooringLights.services", [])
 
       client.send(command, data)
       .then(function(response) {
+        if (button) {
+          Toast.showLongBottom("Chaser has been written to Button " + button);
+        } else {
+          Toast.showLongBottom("Chaser has been written to the controller");
+        }
+
         q.resolve(_self);
 
       }).catch(function(error) {
+        console.log("Couldn't write chaser:");
+        console.log(JSON.stringify(error));
+        Toast.showLongBottom(error.message);
+
         q.reject(error);
 
       });
@@ -140,7 +189,7 @@ angular.module("MooringLights.services", [])
   return (Chaser);
 })
 
-.factory("Scene", function($window, TCPClient) {
+.factory("Scene", function($q, $window, TCPClient, Toast) {
   var CHANNELS_PER_SCENE = 6;
   var DEFAULTS = {Name: "", Mirror: true, Channels: []};
 
@@ -160,8 +209,45 @@ angular.module("MooringLights.services", [])
       }
     };
 
+    this.read = function() {
+      var _self = this;
+
+      var q = $q.defer();
+
+      var client = new TCPClient({
+        Logging: true
+      });
+
+      client.send("STATUS", null)
+      .then(function(response) {
+        for (var i = 0; i < _self.Channels.length; i++) {
+          _self.Channels[i] = response.data[i + 4];
+        }
+
+        _self.Mirror = true;
+        for (var i = 0; i < _self.Channels.length / 2; i++) {
+          if (_self.Channels[i] !== _self.Channels[_self.Channels.length - 1 - i]) {
+            _self.Mirror = false;
+            break;
+          }
+        }
+
+        q.resolve(_self);
+
+      }).catch(function(error) {
+        console.log("Couldn't get status:");
+        console.log(JSON.stringify(error));
+        Toast.showLongBottom(error.message);
+
+        q.reject();
+
+      });
+
+      return q.promise;
+    };
+
     // Writes the levels to the controller
-    this.writeLevels = function(intensity) {
+    this.write = function(intensity) {
       // Default to 0
       intensity = parseInt(intensity) || 0;
 
@@ -175,11 +261,30 @@ angular.module("MooringLights.services", [])
         }
       }
 
+      var q = $q.defer();
+
       var client = new TCPClient({
         Logging: true,
       });
 
-      return client.send("SET", data);
+      client.send("SET", data)
+      .then(function(response) {
+        console.log("Set levels successfuly:");
+        console.log(JSON.stringify(response));
+        Toast.showLongBottom("Lights have been set");
+
+        q.resolve(response);
+
+      }).catch(function(error) {
+        console.log("Couldn't write levels:");
+        console.log(JSON.stringify(error));
+        Toast.showLongBottom(error.message);
+
+        q.reject();
+
+      });
+
+      return q.promise;
     };
 
     this.initialize();
