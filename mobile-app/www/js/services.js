@@ -189,9 +189,11 @@ angular.module("MooringLights.services", [])
   return (Chaser);
 })
 
-.factory("Scene", function($q, $window, TCPClient, Toast) {
+.factory("Scene", function($q, $timeout, $window, TCPClient, Toast) {
   var CHANNELS_PER_SCENE = 6;
   var DEFAULTS = {Name: "", Mirror: true, Channels: []};
+
+  var TIMEOUT = null;
 
   var Scene = function(defaults) {
     angular.extend(this, angular.copy(DEFAULTS), angular.copy(defaults));
@@ -263,26 +265,58 @@ angular.module("MooringLights.services", [])
 
       var q = $q.defer();
 
-      var client = new TCPClient({
-        Logging: true,
+      if (TIMEOUT) {
+        $timeout.cancel(TIMEOUT);
+      }
+
+      TIMEOUT = $timeout(function() {
+        var client = new TCPClient({
+          Logging: true,
+        });
+
+        client.send("SET", data)
+        .then(function(response) {
+          console.log("Set levels successfuly:");
+          console.log(JSON.stringify(response));
+          Toast.showLongBottom("Lights have been set");
+
+          q.resolve({canclled: false});
+
+        }).catch(function(error) {
+          console.log("Couldn't write levels:");
+          console.log(JSON.stringify(error));
+          Toast.showLongBottom(error.message);
+
+          q.reject();
+
+        });
+      }, 200);
+
+      // Called if the timout is cancelled before
+      TIMEOUT.catch(function(error) {
+        q.resolve({canclled: true});
       });
 
-      client.send("SET", data)
-      .then(function(response) {
-        console.log("Set levels successfuly:");
-        console.log(JSON.stringify(response));
-        Toast.showLongBottom("Lights have been set");
-
-        q.resolve(response);
-
-      }).catch(function(error) {
-        console.log("Couldn't write levels:");
-        console.log(JSON.stringify(error));
-        Toast.showLongBottom(error.message);
-
-        q.reject();
-
-      });
+//      var client = new TCPClient({
+//        Logging: true,
+//      });
+//
+//      client.send("SET", data)
+//      .then(function(response) {
+//        console.log("Set levels successfuly:");
+//        console.log(JSON.stringify(response));
+//        Toast.showLongBottom("Lights have been set");
+//
+//        q.resolve(response);
+//
+//      }).catch(function(error) {
+//        console.log("Couldn't write levels:");
+//        console.log(JSON.stringify(error));
+//        Toast.showLongBottom(error.message);
+//
+//        q.reject();
+//
+//      });
 
       return q.promise;
     };

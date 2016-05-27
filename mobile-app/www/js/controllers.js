@@ -5,13 +5,15 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
 
 // EditChaserCtrl: The controller used for adding/editing chasers
 .controller("EditChaserCtrl", function($scope, $rootScope, $window, $ionicHistory, $ionicPopup, $stateParams, Chaser, LightsService, Scene, Toast) {
-  $scope.Chaser = {};
+  $scope.AvailableScenes = 6;
 
-  $scope.Scenes = [];
+  $scope.Chaser = {};
 
   $scope.IsController = false; // Flag indicating whether the Chaser is one stored on the controller
 
   $scope.IsNew = false;
+
+  $scope.Scenes = [];
 
   $scope.doBack = function() {
     $ionicHistory.goBack();
@@ -125,13 +127,11 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
 
 // EditSceneCtrl: The controller for adding/editing scenes
 .controller("EditSceneCtrl", function($scope, $rootScope, $timeout, $window, $ionicHistory, $ionicPopup, $stateParams, LightsService, Scene, Toast) {
-  $scope.Scene = {};
-
   $scope.IsNew = false;
 
   $scope.Intensity = {Value: 0}; // Needs to be wrapped in an object
 
-  $scope.setLevelTimeout = null;
+  $scope.Scene = {};
 
   // Raised when a channel changes
   $scope.onChannelChange = function() {
@@ -161,15 +161,9 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
   };
 
   $scope.setLevels = function() {
-    if ($scope.setLevelTimeout) {
-      $window.clearTimeout($scope.setLevelTimeout);
-      $scope.setLevelTimeout = null;
-    }
-
-    $scope.setLevelTimeout = $window.setTimeout(function () {
-      $scope.setLevelTimout = null;
-      $scope.Scene.write($scope.Intensity.Value);
-    }, 100);
+    $scope.Scene.write($scope.Intensity.Value)
+    .then(function(result) {
+    });
   };
 
   $scope.initialize = function() {
@@ -189,20 +183,17 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
 
 // MainCtrl: The controller used for displaying all the scenes
 .controller("MainCtrl", function($scope, $rootScope, $timeout, $window, $ionicModal, $ionicPopover, $ionicPopup, Chaser, Scene, LightsService, TCPClient, Toast) {
-  $scope.Presets = ["A", "B", "C"];
-
-  // These are the scenes that are currently available
-  $scope.Scenes = [];
-
   $scope.Chasers = [];
-
-  $scope.Settings = {Host: "", Port: 8888, Timeout: 10000};
 
   $scope.Intensity = {Value: 0}; // Needs to be wrapped in an object
 
+  $scope.Presets = ["A", "B", "C"];
+
+  $scope.Scenes = [];
+
   $scope.SelectedSceneID = null;
 
-  $scope.setLevelTimeout = null;
+  $scope.Settings = {Host: "", Port: 8888, Timeout: 10000};
 
   // Create the settings modal that we will use later
   $ionicModal.fromTemplateUrl('templates/network-settings.html', {
@@ -321,25 +312,12 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
   };
 
   $scope.setLevels = function() {
-    if ($scope.setLevelTimeout) {
-      $window.clearTimeout($scope.setLevelTimeout);
-      $scope.setLevelTimeout = null;
+    if ($scope.SelectedSceneID !== null) {
+      var scene = LightsService.getScene($scope.SelectedSceneID);
+      scene.write($scope.Intensity.Value)
+      .then(function(result) {
+      });
     }
-
-    $scope.setLevelTimeout = $window.setTimeout(function () {
-      $scope.setLevelTimout = null;
-
-      var scene;
-      if ($scope.SelectedSceneID !== null) {
-        scene = LightsService.getScene($scope.SelectedSceneID);
-
-        scene.write($scope.Intensity.Value)
-        .catch(function(error) {
-          $scope.SelectedSceneID = null;
-        });
-      }
-
-    }, 100);
   };
 
   $scope.showFadeInterval = function(interval) {
@@ -538,7 +516,7 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
 
 // NetworkSettingsCtrl: The controller used for modifying the network settings
 .controller("NetworkSettingsCtrl", function($scope, $window) {
-  $scope.closeSettings = function() {
+  $scope.doClose = function() {
     $scope.settingsModal.hide();
   };
 
