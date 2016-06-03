@@ -15,7 +15,7 @@
 // Debug serial
 #define DEBUG
 #define DEBUG_BAUD 115200
-#define READ_BUFFER_SIZE 255
+#define READ_BUFFER_SIZE 128
 #define SERIAL_TIMEOUT 100 /* Serial read timeout (in ms) */
 
 // ESP8266
@@ -82,7 +82,7 @@ typedef struct Trigger {
 
 // Lights
 // SoftwareSerial.h needs to be modified http://forum.arduino.cc/index.php?topic=244398.0
-#define LIGHTS_MAX_COUNT 30
+#define LIGHTS_MAX_COUNT 20
 //#define LIGHTS_FADE_INTERVAL 500 /* Fade interval between programs (is ms) */
 
 // Defines a chaser
