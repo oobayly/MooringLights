@@ -82,7 +82,7 @@ typedef struct Trigger {
 
 // Lights
 // SoftwareSerial.h needs to be modified http://forum.arduino.cc/index.php?topic=244398.0
-#define LIGHTS_MAX_COUNT 20
+#define LIGHTS_MAX_COUNT 15
 //#define LIGHTS_FADE_INTERVAL 500 /* Fade interval between programs (is ms) */
 
 // Defines a chaser

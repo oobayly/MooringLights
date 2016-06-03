@@ -6,7 +6,7 @@ angular.module("MooringLights.services", [])
 
 .factory("Chaser", function($q, $window, Scene, TCPClient, Toast) {
   var CHANNELS_PER_SCENE = 6;
-  var SCENES_PER_CHASER = 20;
+  var SCENES_PER_CHASER = 15;
   var DEFAULTS = {Name: "", Interval: 1000, Count: 1, Scenes: []};
 
   var Chaser = function(defaults) {
