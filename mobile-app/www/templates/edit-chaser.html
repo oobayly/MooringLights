@@ -21,7 +21,7 @@
       <ion-item class="item item-input item-select item-select-left">
         <span class="input-label"># Scenes</span>
         <select ng-model="Chaser.Count">
-          <option ng-repeat="n in [].constructor(AvailableScenes) track by $index">{{$index + 1}}</option>
+          <option ng-repeat="n in [].constructor(Chaser.Scenes.length) track by $index">{{$index + 1}}</option>
         </select>
       </ion-item>
 

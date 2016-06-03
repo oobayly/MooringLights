@@ -5,8 +5,6 @@ angular.module("MooringLights.controllers", ["ngCordova", "MooringLights.service
 
 // EditChaserCtrl: The controller used for adding/editing chasers
 .controller("EditChaserCtrl", function($scope, $rootScope, $window, $ionicHistory, $ionicPopup, $stateParams, Chaser, LightsService, Scene, Toast) {
-  $scope.AvailableScenes = 6;
-
   $scope.Chaser = {};
 
   $scope.IsController = false; // Flag indicating whether the Chaser is one stored on the controller
