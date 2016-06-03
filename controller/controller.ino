@@ -24,8 +24,12 @@ void setup() {
   config_read((Config *)config);
   if (config->fade_interval < 250) {
     config->fade_interval = 250;
+  } else if (config->fade_interval == 0xffff) {
+    config->fade_interval = 1000;
   }
   if (config->sleep_interval < 30000) {
+    config->sleep_interval = 7200000;
+  } else if (config->sleep_interval = 0xffffffff) {
     config->sleep_interval = 7200000;
   }
   Serial.print(F("\tFade Interval:\t"));
